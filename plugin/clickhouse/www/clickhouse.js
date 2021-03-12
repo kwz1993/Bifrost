@@ -7,6 +7,7 @@ function doGetPluginParam(){
     var BatchSize = $("#CK_BatchSize").val();
     var SyncType = $("#clickhouse_sync_type").val();
     var NullNotTransferDefault = $("#clickhouse_NullNotTransferDefault").val();
+    var LowerCaseTableNames = $("#clickhouse_LowerCaseTableNames").val();
     var AutoCreateTable = false;
     if (CkTable == ""){
         AutoCreateTable = true;
@@ -30,7 +31,7 @@ function doGetPluginParam(){
             var ck_field_name = $(this).find("input[name=ck_field_name]").val();
             //var ck_field_type = $(this).find("input[name=ck_field_name]").prop("ck_field_type");
             var ck_field_type = ckFieldDataMap[ck_field_name];
-            console.log("ck_field_name_input_:" + ck_field_name + " ck_field_type:" + ck_field_type);
+            //console.log("ck_field_name_input_:" + ck_field_name + " ck_field_type:" + ck_field_type);
             var mysql_field_name = $(this).find("input[name=mysql_field_name]").val();
 
             var d = {};
@@ -91,6 +92,7 @@ function doGetPluginParam(){
     result.data["BatchSize"]        = parseInt(BatchSize);
     result.data["SyncType"]         = SyncType;
     result.data["AutoCreateTable"]  = AutoCreateTable;
+    result.data["LowerCaseTableNames"] = parseInt(LowerCaseTableNames);
     if (NullNotTransferDefault == "true"){
         result.data["NullNotTransferDefault"] = true;
     }else{
@@ -104,7 +106,7 @@ function showClickHouseCreateSQL() {
         alert("请先选择 MYSQL 表");
         return;
     }
-    var tableName = $("#tableToServerListContair").attr("table_name");
+    var tableName = getTableName();
     var sql = getClickHouseTableCreateSQL(tableName);
 
     $("#showClickHouseCreateSQL .modal-title").html("ClickHouse CreateSQL For Table </br>"+tableName);
@@ -115,6 +117,19 @@ function showClickHouseCreateSQL() {
 function getClickHouseTableCreateSQL(tableName) {
 	var ddlSql = "";
 	var index = "";
+    var LowerCaseTableNames = $("#clickhouse_LowerCaseTableNames").val();
+    var getFieldName = function (Name) {
+        switch (LowerCaseTableNames) {
+            case "0":
+                return Name;
+            case "1":
+                return Name.toLowerCase();
+            case "2":
+                return Name.toUpperCase();
+            default:
+                return Name
+        }
+    };
     $.each($("#TableFieldsContair .fieldsname input"),
 		function () {
             var data = getTableFieldType($(this).val());
@@ -133,9 +148,9 @@ function getClickHouseTableCreateSQL(tableName) {
                 }
 
                 if(ddlSql == ""){
-                    ddlSql = data.COLUMN_NAME+" "+Type;
+                    ddlSql = getFieldName(data.COLUMN_NAME) + " " + Type;
                 }else{
-                    ddlSql +=","+data.COLUMN_NAME+" "+Type;
+                    ddlSql +="," + getFieldName(data.COLUMN_NAME) +" " + Type;
                 }
                 if(data.COLUMN_KEY == ""){
                     return
@@ -144,9 +159,9 @@ function getClickHouseTableCreateSQL(tableName) {
                     return
                 }
                 if(index == ""){
-                    index = data.COLUMN_NAME;
+                    index = getFieldName(data.COLUMN_NAME);
                 }else{
-                    index += ","+data.COLUMN_NAME;
+                    index += "," + getFieldName(data.COLUMN_NAME);
                 }
             }
             switch(data.DATA_TYPE){
@@ -212,7 +227,7 @@ function getClickHouseTableCreateSQL(tableName) {
 
     ddlSql += ",binlog_event_type String,bifrost_data_version Int64";
 
-    var SQL = "CREATE TABLE "+tableName+"("+ddlSql+") ENGINE = MergeTree() ";
+    var SQL = "CREATE TABLE " + getFieldName(tableName) + "("+ddlSql+") ENGINE = MergeTree() ";
     if (index != ""){
         SQL += "ORDER BY ("+index+")";
     }
@@ -221,10 +236,10 @@ function getClickHouseTableCreateSQL(tableName) {
 
 function GetCkSchameList() {
     $.get(
-        "/bifrost/clickhouse/schemalist?toserverkey="+$("#addToServerKey").val(),
+        "/bifrost/plugin/clickhouse/schemalist?ToServerKey="+$("#addToServerKey").val(),
         function (d, status) {
             if (status != "success") {
-                console.log("/bifrost/clickhouse/schemalist?toserverkey="+$("#addToServerKey").val());
+                console.log("/bifrost/plugin/clickhouse/schemalist?ToServerKey="+$("#addToServerKey").val());
                 return false;
             }
             var html = "<option value=''>自动创建CK库</option>";
@@ -236,15 +251,15 @@ function GetCkSchameList() {
         }, 'json');
 }
 
-function GetCkSchameTableList(schemaName) {
+function GetCkSchameTableList(SchemaName) {
     $("#CKTableFieldsTable").html("");
-    if(schemaName == ""){
+    if(SchemaName == ""){
         $("#clickohuse_table").html("");
 
         return
     }
     $.get(
-        "/bifrost/clickhouse/tablelist?toserverkey="+$("#addToServerKey").val()+"&schema="+schemaName,
+        "/bifrost/plugin/clickhouse/tablelist?ToServerKey="+$("#addToServerKey").val()+"&SchemaName="+SchemaName,
         function (d, status) {
             if (status != "success") {
                 return false;
@@ -259,11 +274,11 @@ function GetCkSchameTableList(schemaName) {
         }, 'json');
 }
 
-function GetCkTableDesc(schemaName,tableName) {
+function GetCkTableDesc(SchemaName,TableName) {
     $("#CKTableFieldsTable").html("");
     ckFieldDataMap = {};
     $.get(
-        "/bifrost/clickhouse/tableinfo?toserverkey="+$("#addToServerKey").val()+"&schema="+schemaName+"&table_name="+tableName,
+        "/bifrost/plugin/clickhouse/tableinfo?ToServerKey="+$("#addToServerKey").val()+"&SchemaName="+SchemaName+"&TableName="+TableName,
         function (d, status) {
             if (status != "success") {
                 return false;
@@ -369,3 +384,6 @@ $("#TableFieldsContair p.fieldsname input:checkbox").click(
         var fieldName = $(this).val();
         $("#"+CK_OnFoucsInputId).val($.trim(fieldName));
 });
+
+// 设置不过滤 sql 事件, sql 将会提交到 mysql 插件来
+setPluginParamDefault("FilterQuery","false");

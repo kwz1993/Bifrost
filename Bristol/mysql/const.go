@@ -28,6 +28,10 @@ const (
 	CLIENT_SECURE_CONN
 	CLIENT_MULTI_STATEMENTS
 	CLIENT_MULTI_RESULTS
+	CLIENT_PS_MULTI_RESULTS
+	CLIENT_PLUGIN_AUTH
+	CLIENT_CONNECT_ATTRS
+	CLIENT_PLUGIN_AUTH_LENENC_CLIENT_DATA
 )
 
 type commandType byte
@@ -61,6 +65,9 @@ const (
 	COM_STMT_RESET
 	COM_SET_OPTION
 	COM_STMT_FETCH
+	COM_DAEMON
+	COM_BINLOG_DUMP_GTID
+	COM_END
 )
 
 type FieldType byte
@@ -166,6 +173,27 @@ const (
 	GTID_EVENT //33
 	ANONYMOUS_GTID_EVENT //34
 	PREVIOUS_GTIDS_EVENT //35
+	TRANSACTION_CONTEXT_EVENT // 36
+	VIEW_CHANGE_EVENT		  // 37
+	XA_PREPARE_LOG_EVENT	  // 38
+)
+
+
+const (
+	// MariaDB event starts from 160
+	MARIADB_ANNOTATE_ROWS_EVENT EventType = 160 + iota
+	MARIADB_BINLOG_CHECKPOINT_EVENT
+	MARIADB_GTID_EVENT
+	MARIADB_GTID_LIST_EVENT
+)
+
+const (
+	BINLOG_MARIADB_FL_STANDALONE      = 1 << iota /*1  - FL_STANDALONE is set when there is no terminating COMMIT event*/
+	BINLOG_MARIADB_FL_GROUP_COMMIT_ID             /*2  - FL_GROUP_COMMIT_ID is set when event group is part of a group commit on the master. Groups with same commit_id are part of the same group commit.*/
+	BINLOG_MARIADB_FL_TRANSACTIONAL               /*4  - FL_TRANSACTIONAL is set for an event group that can be safely rolled back (no MyISAM, eg.).*/
+	BINLOG_MARIADB_FL_ALLOW_PARALLEL              /*8  - FL_ALLOW_PARALLEL reflects the (negation of the) value of @@SESSION.skip_parallel_replication at the time of commit*/
+	BINLOG_MARIADB_FL_WAITED                      /*16 = FL_WAITED is set if a row lock wait (or other wait) is detected during the execution of the transaction*/
+	BINLOG_MARIADB_FL_DDL                         /*32 - FL_DDL is set for event group containing DDL*/
 )
 
 type eventFlag uint16
@@ -183,15 +211,6 @@ const (
 	LOG_EVENT_MTS_ISOLATE_F
 )
 
-type BinlogDumpStatus int8
-
-const (
-	BINLOG_DUMP_CLOSE  BinlogDumpStatus = 0
-	BINLOG_DUMP_STARTING BinlogDumpStatus = 1
-	BINLOG_DUMP_STOP BinlogDumpStatus = 2
-	BINLOG_DUMP_RUNNING BinlogDumpStatus = 3
-)
-
 type StatusFlag int8
 const (
 	STATUS_CLOSED 	StatusFlag = 0
@@ -201,4 +220,11 @@ const (
 	STATUS_STOPING 	StatusFlag = 12
 	STATUS_STOPED 	StatusFlag = 13
 	STATUS_KILLED 	StatusFlag = 3
+)
+
+const (
+	AUTH_MYSQL_OLD_PASSWORD    = "mysql_old_password"
+	AUTH_NATIVE_PASSWORD       = "mysql_native_password"
+	AUTH_CACHING_SHA2_PASSWORD = "caching_sha2_password"
+	AUTH_SHA256_PASSWORD       = "sha256_password"
 )

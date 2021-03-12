@@ -6,12 +6,13 @@ import (
 )
 
 type tableStruct struct {
-	Pri 					[]*string
-	ColumnSchemaTypeList 	[]*column_schema_type
+	Pri 					[]string
+	ColumnSchemaTypeList 	[]*ColumnInfo
 	needReload				bool
+	ColumnMapping			map[string]string
 }
 
-type column_schema_type struct {
+type ColumnInfo struct {
 	COLUMN_NAME        string
 	COLLATION_NAME     string
 	CHARACTER_SET_NAME string
@@ -19,19 +20,20 @@ type column_schema_type struct {
 	COLUMN_KEY         string
 	COLUMN_TYPE        string
 	NUMERIC_SCALE      string  //浮点数精确多少数
-	enum_values        []string
-	set_values         []string
-	is_bool            bool
-	is_primary         bool
-	unsigned 		   bool
-	auto_increment     bool
+	EnumValues         []string
+	SetValues          []string
+	IsBool             bool
+	IsPrimary          bool
+	Unsigned 		   bool
+	AutoIncrement      bool
 	COLUMN_DEFAULT	   string
 	DATA_TYPE		   string
 	CHARACTER_OCTET_LENGTH	uint64
 }
 
 type MysqlConnection interface {
-	DumpBinlog(filename string, position uint32, parser *eventParser, callbackFun callback, result chan error) (driver.Rows, error)
+	DumpBinlog(parser *eventParser, callbackFun callback) (driver.Rows, error)
+	DumpBinlogGtid(parser *eventParser, callbackFun callback) (driver.Rows, error)
 	Close() error
 	Ping() error
 	Prepare(query string) (driver.Stmt, error)
@@ -46,7 +48,10 @@ type EventReslut struct {
 	TableName      string
 	BinlogFileName string
 	BinlogPosition uint32
-	Pri			   []*string
+	Gtid	   	   string
+	Pri			   []string
+	ColumnMapping  map[string]string
+	EventID		   uint64				// 事件ID
 }
 
 type callback func(data *EventReslut)

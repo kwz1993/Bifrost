@@ -300,6 +300,28 @@ func (mc *mysqlConn) writeCommandPacket(command commandType, args ...interface{}
 		arg = append(arg, uint32ToBytes(args[2].(uint32))...)
 		arg = append(arg, []byte(args[3].(string))...)
 
+	case COM_BINLOG_DUMP_GTID:
+		if len(args) != 3 {
+			return fmt.Errorf("Invalid arguments count (Got: %d Has: 1)", len(args))
+		}
+		GtidBody := args[0].([]byte)
+		/**
+		binlog_flags 2
+		server_id 4
+		binlog_name_info_size 4
+		empty binlog name ""
+		binlog_pos_info_size 8
+		encoded_data_size 4
+		 */
+		fileNameByte := []byte("")
+		arg = append(arg, uint16ToBytes(args[1].(uint16))...)     // 2
+		arg = append(arg, uint32ToBytes(args[2].(uint32))...)     // 4
+		arg = append(arg, uint32ToBytes(uint32(len(fileNameByte)))...)  // 4
+		arg = append(arg, fileNameByte...)						  // ""
+		arg = append(arg, uint64ToBytes(4)...)				  // 8
+		arg = append(arg, uint32ToBytes(uint32(len(GtidBody)))...) // 4
+		arg = append(arg, GtidBody...)							  // body
+
 	default:
 		return fmt.Errorf("Unknown command: %d", command)
 	}
@@ -882,11 +904,14 @@ func (mc *mysqlConn) readBinaryRows(rc *rowsContent) (e error) {
 					//row[i] = intToByteStr(int64(int8(byteToUint8(data[pos]))))
 					 b := int8(byteToUint8(data[pos]))
 					 //length == 1 是 tinyint(1)  bool值
-					if rc.columns[i].length == 1{
-						if b == 1{
+					if rc.columns[i].length == 1 {
+						switch b {
+						case 1:
 							row[i] = true
-						}else{
+						case 0:
 							row[i] = false
+						default:
+							row[i] = b
 						}
 					}else{
 						row[i] = b
@@ -1047,14 +1072,23 @@ func (mc *mysqlConn) readBinaryRows(rc *rowsContent) (e error) {
 				if e != nil {
 					return
 				}
-
-				if num == 0 {
+				switch num {
+				case 0:
 					row[i] = "00:00:00"
-				} else {
+				case 8:
 					row[i] = fmt.Sprintf("%02d:%02d:%02d",
 						data[pos+6],
 						data[pos+7],
 						data[pos+8])
+				case 12:
+					row[i] = fmt.Sprintf(
+						"%02d:%02d:%02d.%06d",
+						data[pos+6],
+						data[pos+7],
+						data[pos+8],
+						bytesToUint24(data[pos+9:pos+12]))
+				default:
+					return fmt.Errorf("Invalid time-packet length %d", num)
 				}
 				pos += n + int(num)
 				break
@@ -1076,10 +1110,7 @@ func (mc *mysqlConn) readBinaryRows(rc *rowsContent) (e error) {
 						bytesToUint16(data[pos:pos+2]),
 						data[pos+2],
 						data[pos+3])
-				default:
-					if num < 7 {
-						return fmt.Errorf("Invalid datetime-packet length %d", num)
-					}
+				case 7:
 					row[i] = fmt.Sprintf("%04d-%02d-%02d %02d:%02d:%02d",
 						bytesToUint16(data[pos:pos+2]),
 						data[pos+2],
@@ -1087,6 +1118,18 @@ func (mc *mysqlConn) readBinaryRows(rc *rowsContent) (e error) {
 						data[pos+4],
 						data[pos+5],
 						data[pos+6])
+				case 11:
+					row[i] = fmt.Sprintf(
+						"%04d-%02d-%02d %02d:%02d:%02d.%06d",
+						bytesToUint16(data[pos:pos+2]),
+						data[pos+2],
+						data[pos+3],
+						data[pos+4],
+						data[pos+5],
+						data[pos+6],
+						bytesToUint32(data[pos+7:pos+11]))
+				default:
+					return fmt.Errorf("Invalid datetime-packet length %d", num)
 				}
 				pos += int(num)
 				break

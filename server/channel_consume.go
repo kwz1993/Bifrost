@@ -19,16 +19,13 @@ import (
 	"fmt"
 	"time"
 	"strings"
-)
-
-import (
+	"strconv"
+	"sync"
+	"log"
 	pluginDriver "github.com/brokercap/Bifrost/plugin/driver"
 	"github.com/brokercap/Bifrost/Bristol/mysql"
 	"github.com/brokercap/Bifrost/server/count"
 	"github.com/brokercap/Bifrost/config"
-	"strconv"
-	"sync"
-	"log"
 )
 
 func evenTypeName(e mysql.EventType) string {
@@ -41,6 +38,10 @@ func evenTypeName(e mysql.EventType) string {
 		return "delete"
 	case mysql.QUERY_EVENT:
 		return "sql"
+	case mysql.XID_EVENT:
+		return "commit"
+	default:
+		break
 	}
 	return fmt.Sprintf("%d", e)
 }
@@ -53,19 +54,19 @@ type consume_channel_obj struct {
 	sync.RWMutex
 	db      *db
 	c       *Channel
-	connMap map[string]pluginDriver.ConnFun
+	SchemaName string
+	TableName string
 }
 
 func NewConsumeChannel(c *Channel) *consume_channel_obj {
 	return &consume_channel_obj{
 		db:      c.db,
 		c:       c,
-		connMap: make(map[string]pluginDriver.ConnFun, 0),
 	}
 }
 
 func (This *consume_channel_obj) checkChannleStatus() {
-	if This.c.Status == "close"{
+	if This.c.Status == CLOSED{
 		panic("channel closed")
 	}
 }
@@ -74,15 +75,27 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 	ToServerInfo.Lock()
 	status := ToServerInfo.Status
 	FileQueueStatus := ToServerInfo.FileQueueStatus
-	if status == "deling" || status == "deled"{
+	if status == DELING || status == DELED{
 		ToServerInfo.Unlock()
 		return
 	}
-	if status == ""{
-		ToServerInfo.Status = "running"
+	if status == DEFAULT {
+		ToServerInfo.Status = RUNNING
 	}
 	//修改toserver 对应最后接收的 位点信息
+	var lastQueueBinlog = &PositionStruct{
+		BinlogFileNum: pluginData.BinlogFileNum,
+		BinlogPosition: pluginData.BinlogPosition,
+		GTID: pluginData.Gtid,
+		Timestamp: pluginData.Timestamp,
+		EventID: pluginData.EventID,
+	}
+	ToServerInfo.LastQueueBinlog = lastQueueBinlog
+
+	// 支持到 1.8.x
 	ToServerInfo.LastBinlogFileNum,ToServerInfo.LastBinlogPosition = pluginData.BinlogFileNum,pluginData.BinlogPosition
+
+	//ToServerInfo.LastBinlogFileNum,ToServerInfo.LastBinlogPosition,ToServerInfo.LastBinlogGtid,ToServerInfo.LastBinlogEventID = pluginData.BinlogFileNum,pluginData.BinlogPosition,pluginData.Gtid,pluginData.EventID
 	if ToServerInfo.ToServerChan == nil{
 		ToServerInfo.ToServerChan = &ToServerChan{
 			To:     make(chan *pluginDriver.PluginDataType, config.ToServerQueueSize),
@@ -93,7 +106,7 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 	if ToServerInfo.LastBinlogKey == nil{
 		ToServerInfo.LastBinlogKey = getToServerLastBinlogkey(This.db,ToServerInfo)
 	}
-	saveBinlogPositionByCache(ToServerInfo.LastBinlogKey,pluginData.BinlogFileNum,pluginData.BinlogPosition)
+	saveBinlogPositionByCache(ToServerInfo.LastBinlogKey,lastQueueBinlog)
 	if FileQueueStatus {
 		ToServerInfo.InitFileQueue(This.db.Name,pluginData.SchemaName,pluginData.TableName)
 		ToServerInfo.AppendToFileQueue(pluginData)
@@ -129,7 +142,7 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 		case <-timer.C:
 			ToServerInfo.Lock()
 			defer ToServerInfo.Unlock()
-			ToServerInfo.InitFileQueue(This.db.Name, pluginData.SchemaName, pluginData.TableName)
+			ToServerInfo.InitFileQueue(This.db.Name, This.SchemaName, This.TableName)
 			ToServerInfo.AppendToFileQueue(pluginData)
 			ToServerInfo.FileQueueStatus = true
 			//log.Println("start FileQueueStatus = true;",*pluginData)
@@ -144,11 +157,11 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 
 }
 
-func (This *consume_channel_obj) transferToPluginData(data *mysql.EventReslut) pluginDriver.PluginDataType{
+func (This *consume_channel_obj) transferToPluginData(data *mysql.EventReslut) (pluginData *pluginDriver.PluginDataType) {
 	i := strings.IndexAny(data.BinlogFileName, ".")
 	intString := data.BinlogFileName[i+1:]
 	BinlogFileNum,_:=strconv.Atoi(intString)
-	return pluginDriver.PluginDataType{
+	pluginData = &pluginDriver.PluginDataType{
 		Timestamp:data.Header.Timestamp,
 		EventType:evenTypeName(data.Header.EventType),
 		SchemaName:data.SchemaName,
@@ -157,22 +170,15 @@ func (This *consume_channel_obj) transferToPluginData(data *mysql.EventReslut) p
 		BinlogFileNum:BinlogFileNum,
 		BinlogPosition:data.Header.LogPos,
 		Query:data.Query,
-		Pri: data.Pri,
+		Gtid:data.Gtid,
+		Pri:data.Pri,
+		ColumnMapping: data.ColumnMapping,
+		EventID: data.EventID,
 	}
+	return
 }
 
-/*
-深度拷贝，性能不是很好，现在放弃了
-func(This *consume_channel_obj) deepCopy(dst, src interface{}) error {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(src); err != nil {
-		return err
-	}
-	return gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
-}
-*/
-
-func (This *consume_channel_obj) consume_channel() {
+func (This *consume_channel_obj) consumeChannel() {
 	c := This.c
 	var data mysql.EventReslut
 	log.Println("channel",c.Name," consume_channel start")
@@ -197,14 +203,11 @@ func (This *consume_channel_obj) consume_channel() {
 			case mysql.UPDATE_ROWS_EVENTv2, mysql.UPDATE_ROWS_EVENTv1, mysql.UPDATE_ROWS_EVENTv0:
 				countNum = int64(len(data.Rows)/2)
 				break
-			case mysql.QUERY_EVENT:
+			case mysql.QUERY_EVENT,mysql.XID_EVENT:
 				countNum = 0
 				break
 			default:
 				countNum = int64(len(data.Rows))
-				break
-			}
-			if countNum == 0{
 				break
 			}
 			EventSize = int64(data.Header.EventSize)
@@ -212,9 +215,12 @@ func (This *consume_channel_obj) consume_channel() {
 			key = GetSchemaAndTableJoin(data.SchemaName,data.TableName)
 			AllTableKey = GetSchemaAndTableJoin(data.SchemaName,"*")
 			pluginData := This.transferToPluginData(&data)
-			This.sendToServerList(key,&pluginData,countNum,EventSize)
-			This.sendToServerList(AllTableKey,&pluginData,countNum,EventSize)
-			This.sendToServerList(AllSchemaAndTablekey,&pluginData,countNum,EventSize)
+			This.SchemaName,This.TableName = pluginData.SchemaName,pluginData.TableName
+			This.sendToServerList(key,pluginData,countNum,EventSize)
+			This.SchemaName,This.TableName = pluginData.SchemaName,"*"
+			This.sendToServerList(AllTableKey,pluginData,countNum,EventSize)
+			This.SchemaName,This.TableName = "*","*"
+			This.sendToServerList(AllSchemaAndTablekey,pluginData,countNum,EventSize)
 
 			if This.db.killStatus == 1{
 				return
@@ -225,13 +231,13 @@ func (This *consume_channel_obj) consume_channel() {
 			timer.Reset(5 * time.Second)
 		}
 		for {
-			if c.Status == "stop" {
+			if c.Status == STOPPED {
 				time.Sleep(1 * time.Second)
 			} else {
 				break
 			}
 		}
-		if c.CurrentThreadNum > c.MaxThreadNum || c.Status == "close" {
+		if c.CurrentThreadNum > c.MaxThreadNum || c.Status == CLOSED {
 			c.CurrentThreadNum--
 			break
 		}
@@ -279,14 +285,21 @@ func (This *consume_channel_obj) sendToServerList(key string,pluginData *pluginD
 func (This *consume_channel_obj) sendToServerList0(toServerList []*ToServer,pluginData *pluginDriver.PluginDataType)  {
 	for _, toServerInfo := range toServerList {
 		if toServerInfo.FilterQuery && pluginData.EventType == "sql" {
+			if pluginData.Query != "COMMIT" {
+				continue
+			}
+		}
+		if pluginData.EventID < toServerInfo.LastSuccessBinlog.EventID {
 			continue
 		}
+		/*
 		if pluginData.BinlogFileNum < toServerInfo.BinlogFileNum {
 			continue
 		}
-		if pluginData.BinlogFileNum == toServerInfo.BinlogFileNum && toServerInfo.BinlogPosition >= pluginData.BinlogPosition {
+		if pluginData.Timestamp < toServerInfo.LastSuccessBinlog.Timestamp || (pluginData.BinlogFileNum == toServerInfo.LastSuccessBinlog.BinlogFileNum && toServerInfo.LastSuccessBinlog.BinlogPosition >= pluginData.BinlogPosition) {
 			continue
 		}
+		 */
 		This.sendToServerResult(toServerInfo,pluginData)
 	}
 }

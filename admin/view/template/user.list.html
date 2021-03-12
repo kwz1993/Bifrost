@@ -1,0 +1,275 @@
+
+{{template "header" .}}
+		
+<script type="text/javascript">
+function formatDate(timestamp) {
+    if (timestamp == 0){
+        return "";
+    }
+    var now = new Date(timestamp*1000);
+    var year=now.getFullYear();
+    var month=now.getMonth()+1;
+    var date=now.getDate();
+    var hour=now.getHours();
+    var minute=now.getMinutes();
+    var second=now.getSeconds();
+    return year+"-"+month+"-"+date+" "+hour+":"+minute+":"+second;
+}
+</script>
+                <div class="ibox float-e-margins" >
+                  <div class="row">
+                  <div class="col-lg-8"></div>
+                        <div class="col-lg-4"></div>
+
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-lg-12">
+                            <div class="ibox float-e-margins">
+                                <div class="ibox-title">
+                                    <h5>UserList  &nbsp;&nbsp;&nbsp;&nbsp;
+                                        <button data-toggle="button" class="btn-sm btn-primary" type="button" id="LoginLogBtn" style="margin-top: -10px">Login Log</button>
+                                        <a href="/refuseip/index"><button class="btn-sm btn-primary" type="button" style="margin-top: -10px">Refuse Ip Manager</button></a>
+                                    </h5>
+                                    <div class="ibox-tools">
+                                        <a class="collapse-link">
+                                            <i class="fa fa-chevron-up"></i>
+                                        </a>
+                                        <a class="close-link">
+                                            <i class="fa fa-times"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                                <div class="ibox-content">
+                                    <div class="table-responsive">
+                                        <table class="table table-striped">
+                                            <thead>
+                                                <tr>
+                                                    <th>Name</th>
+                                                    <th>Group</th>
+                                                    <th>Host</th>
+                                                    <th>AddTime</th>
+                                                    <th>UpdateTime</th>
+                                                    <th>OP</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="dbListContair">
+                                            	{{range $i, $v := .UserList}}
+                                                <tr>
+                                                    <td>{{$v.Name}}</td>
+                                                    <td>{{$v.Group}}</td>
+                                                    <td>{{$v.Host}}</td>
+                                                    <td><script type="text/javascript">document.write(formatDate({{$v.AddTime}}));</script></td>
+                                                    <td><script type="text/javascript">document.write(formatDate({{$v.UpdateTime}}));</script></td>
+
+                                                    <td>
+                                                        <button data-toggle="button" class="btn-sm btn-primary updateUserBtn" type="button">修改</button>
+
+                                                        <button data-toggle="button" class="btn-sm btn-danger DelUserBtn" type="button">Del</button>
+                                                    </td>
+                                                </tr>
+                                                {{end}}
+                                            </tbody>
+                                        </table>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            
+            
+            
+            <div class="ibox float-e-margins" id="addAdminContair">
+            <div class="ibox-title">
+                <h5 id="opContairTitle">Add new User</h5>
+                <div class="ibox-tools">
+                
+                    <a class="collapse-link">
+                        <i class="fa fa-chevron-up"></i>
+                    </a>
+                    <a class="close-link">
+                        <i class="fa fa-times"></i>
+                    </a>
+                </div>
+            </div>
+            <a name="newOrUpdateUser"></a><!--新增或者修改数据源-->
+            <div class="ibox-content">
+                <div class="row row-lg">
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Name：</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="UserName" id="UserName" class="form-control" placeholder="Name"> <span class="help-block m-b-none">* 字母,30个字母以内</span>
+                            </div>
+                        </div>
+                        <div class="form-group" >
+                            <label class="col-sm-3 control-label">Password：</label>
+                            <div class="col-sm-9" style=" position: relative">
+                                <input type="password" name="Password" id="Password" class="form-control" placeholder="Password"> <span class="help-block m-b-none">*</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group" >
+                            <label class="col-sm-3 control-label">再次输入Password：</label>
+                            <div class="col-sm-9" style=" position: relative">
+                                <input type="password" name="Password2" id="Password2" class="form-control" placeholder="Password"> <span class="help-block m-b-none">*</span>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">Host：</label>
+                            <div class="col-sm-9">
+                                <input type="text" name="Host" id="Host" class="form-control" placeholder="%"> <span class="help-block m-b-none">eg: 192.168.%</span>
+                            </div>
+                        </div>
+                        <div class="form-group"  id="update_toserver_contair">
+                            <label class="col-sm-3 control-label">Group：</label>
+                            <div class="col-sm-9">
+                                <select class="form-control" name="Group" id="Group">
+                                    <option value="administrator">administrator</option>
+                                    <option value="monitor">monitor</option>
+                                </select><span class="help-block m-b-none"></span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="col-sm-3 control-label">&nbsp;</label>
+                            <div class="col-sm-9">
+                                <button data-toggle="button" class="btn-sm btn-primary" id="addNewUserBtn" type="button">提交</button>
+                    
+                            </div>
+                        </div>                        
+                        
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+<!--login log start-->
+<div class="modal inmodal fade" id="loginLogInfoDiv" tabindex="-1" role="dialog"  aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span aria-hidden="true">&times;</span><span class="sr-only">Close</span></button>
+                <h3 class="modal-title">Login Log</h3>
+            </div>
+            <div class="modal-body" style="line-height: 200%">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn-sm btn-white" data-dismiss="modal">关闭</button>
+            </div>
+        </div>
+    </div>
+</div>
+<!--login log over-->
+
+{{template "footer" .}}
+<script src="/js/bootstrap.min.js?v=3.3.6"></script>
+<script src="/js/plugins/bootstrap-table/bootstrap-table.min.js"></script>
+
+<script type="text/javascript">
+
+$("#addNewUserBtn").click(
+	function(){
+		var UserName = $("#UserName").val();
+		if(UserName=="" || UserName.length > 30){
+			 $("#UserName").focus();
+			 return false;
+		}
+		var Password = $("#Password").val();
+        var Password2 = $("#Password2").val();
+		var Group = $("#Group").val();
+        var Host = $("#Host").val();
+		if( Password == "" || Password2 == "" || Group=="" ){
+			return
+		}
+		if( Password != Password2 ){
+            alert("二次输入密码不匹配，请重新输入！");
+            return;
+        }
+		if( Host != "" ) {
+            var HostArr = Host.split(",");
+            for(var i = 0,len = HostArr.length; i < len; i++) {
+                if ( HostArr[i].split(".").length > 4 ) {
+                    alert("Host param is error!");
+                    return
+                }
+            }
+        }
+
+		var url = "/user/update";
+        var callback = function (data) {
+            if(!data.status){
+                alert(data.msg);
+                return false;
+            }
+            alert(data.msg);
+            window.location.reload();
+        };
+        Ajax("POST",url, { UserName: UserName,Password:Password,Group:Group,Host:Host},callback,true);
+	}
+);
+
+function updateOpContairTitle(Name) {
+    if( Name == "" ) {
+        $("#opContairTitle").text("Add new User");
+    }else{
+        $("#opContairTitle").text("Update User : "+Name);
+    }
+}
+
+$(".updateUserBtn").click(
+    function () {
+        var trObj = $(this).parent().parent();
+        var UserName =  trObj.children().eq(0).text();
+        var Group =  trObj.children().eq(1).text();
+        var Host =  trObj.children().eq(2).text();
+
+        updateOpContairTitle(UserName);
+
+        $("#UserName").attr("disabled","disabled");
+        $("#UserName").val(UserName);
+        $("#Group").val(Group);
+        $("#Host").val(Host);
+        $("#update_toserver_contair").show();
+    }
+);
+
+$(".DelUserBtn").click(
+        function () {
+            var trObj = $(this).parent().parent();
+            var UserName =  trObj.children().eq(0).text();
+            if(!confirm("确定删除用户 "+UserName+ " ? 删除后不能恢复")){
+                return false;
+            }
+            var url = "/user/del";
+            var callback = function (data) {
+                if(!data.status){
+                    alert(data.msg);
+                    return false;
+                }
+                trObj.remove();
+            };
+            Ajax("POST",url, { UserName: UserName},callback,true);
+        }
+);
+
+$("#LoginLogBtn").click(
+    function () {
+        var url = "/user/login/log";
+        var callback = function (data) {
+            $("#loginLogInfoDiv .modal-body").html(data.data);
+            $("#loginLogInfoDiv").modal('show');
+        };
+        Ajax("GET",url, {},callback,true);
+    }
+);
+
+</script>

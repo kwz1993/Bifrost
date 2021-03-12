@@ -1,31 +1,32 @@
 ## Bifrost ---- 面向生产环境的 MySQL 同步到Redis,ClickHouse等服务的异构中间件
 
-[![Build Status](https://travis-ci.org/brokercap/Bifrost.svg?branch=v1.5.x)](https://travis-ci.org/brokercap/Bifrost)
+[![Gitter](https://badges.gitter.im/brokercap-Bifrost/Bifrost.svg)](https://gitter.im/brokercap-Bifrost/Bifrost?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Build Status](https://travis-ci.org/brokercap/Bifrost.svg?branch=v1.7.x)](https://travis-ci.org/brokercap/Bifrost)
 [![License](https://img.shields.io/github/license/jc3wish/Bifrost.svg)](https://opensource.org/licenses/apache2.0)
 
+[English](https://github.com/brokercap/Bifrost/blob/v1.7.x/README.EN.MD)
 
 ##### 漫威里的彩虹桥可以将 雷神 送到 阿斯加德 和 地球
 
 
-#### 而这个 Bifrost 可以将 你 MySQL 里的数据,<font color="#F00">实时</font>的同步到 :
+#### 而这个 Bifrost 可以将 你 MySQL 里的数据 <font color="#F00">全量</font> , <font color="#F00">实时</font>的同步到 :
 
 * Redis
 * MongoDB
-* ClickHouse
-* MySQL
+* ClickHouse(支持DDL)
+* MySQL(支持DDL)
 * Memcahe
 * RabbitMQ
 * ActiveMQ
 * Kafka
-* [Http 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.5.x/plugin/http/example/http_server/http_server.go)
-* [Hprose RPC 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.5.x/hprose_server/tcp_server.go)
+* [Http 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.7.x/plugin/http/example/http_server/http_server.go)
+* [Hprose RPC 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.7.x/hprose_server/tcp_server.go)
 
 ---
 
 #### **WIKI** : [https://wiki.xbifrost.com](https://wiki.xbifrost.com)
 
 ----
-
 
 #### Bifrost 特点
 
@@ -41,13 +42,20 @@
 
 * 宕机后重启自动恢复配置,位点精确控制
 
-* 支持自定义插件开发，动态加载
-
 * 支持 Email 及 微信企业号等**监控报警**功能
 
-* 提供第三方监控平台访问接口(Http Basic验证)
+* 提供第三方监控平台访问接口(Http Basic验证)[https://wiki.xbifrost.com/api/http_api/](https://wiki.xbifrost.com/api/http_api/)
 
-* 支持对 Null 的解析，但对 Null 的支持程度，取决于插件的支持，如果有 Null 数据，请查阅 相关插件文档
+* MySQL,ClickHouse 插件支持  DDL 同步
+
+* 简单即可实现[插件开发](https://wiki.xbifrost.com/plugin/plugin_dev/)
+
+#### 源码下载
+
+[Github](https://github.com/brokercap/Bifrost/)  , [Gitee](https://gitee.com/jc3wish/Bifrost)
+
+你的点击 star 就是对 Bifrost 最大的支持!!!
+
 
 #### Bifrost在线界面体验
 
@@ -57,21 +65,12 @@ https://www.xbifrost.com/demo/goto.html
 
 密码  :  Bifrost123
 
-![image](https://github.com/brokercap/Bifrost/blob/v1.5.x/bifrost.png)
+![image](https://github.com/brokercap/Bifrost/blob/v1.7.x/bifrost.png)
 
 
 #### *Bifrsot* Diagram
 
-![image](https://github.com/brokercap/Bifrost/blob/v1.5.x/diagram.png)
-
-
-
-
-#### Bifrost 还不足的地方
-
-* 支持批量刷数据的插件，在数据同步异常的情况下，不支持错过当前数据同步功能，例如： ClickHouse,Kafka
-
-* datetime,timestamp 解析还不支持精确到毫秒,毫秒部分将会自动被丢弃
+![image](https://github.com/brokercap/Bifrost/blob/v1.7.x/diagram.png)
 
 
 #### MySQL 版本（经过测试）
@@ -101,11 +100,11 @@ make install prefix=./target
 ##### 二进制文件安装
 `````sh
 
-wget https://github.com/brokercap/Bifrost/releases/download/v1.5.2-release/bifrost_v1.5.2-release_Linux-amd64-bin.tar.gz
+wget https://github.com/brokercap/Bifrost/releases/download/v1.7.3-release/bifrost_v1.7.3-release_Linux-amd64-bin.tar.gz
 
-tar -zxvf bifrost_v1.5.2-release_Linux-amd64-bin.tar.gz
+tar -zxvf bifrost_v1.7.3-release_Linux-amd64-bin.tar.gz
 
-cd bifrost_v1.5.2-release_Linux-amd64-bin/bin && chmod a+x ./Bifrost*
+cd bifrost_v1.7.3-release_Linux-amd64-bin/bin && chmod a+x ./Bifrost*
 
 `````
 

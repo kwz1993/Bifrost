@@ -1,3 +1,145 @@
+v1.7.3-release   2021-02-28
+===========================
+1. fix gtid update panic bug
+2. connection use utf8mb4
+3. plugin mysql cancel bool type
+4. fix plugin field nullable contrast YES
+5. fix plugin clickhouse conn error
+
+
+v1.7.2-release   2021-02-21
+===========================
+1. mariadb gtid supported
+2. fix plugin mysql nullable ,bug has default sync error bug
+3. testing binlog parser and select data is all right for mysql,mariadb,percona
+4. golang 1.16 ,Darwin arm64 supported
+
+v1.7.1-release   2021-02-09
+===========================
+1. fix binlog parser ddl(rename,drop) error
+2. fix binlog parser error by  "/*notes*/" filter
+3. plugin ck ddl update
+4. plugin mysql ddl update ,supported tidb rename multi-table
+5. mysql multi-gtid support
+6. fix percona 8.0 char parser error
+7. recovery binlog position calc update
+8. beore and after ddl, callback a dummy begin and commit event
+9. fix windows path error
+10. db list show eventID
+11. doc update
+12. fix other bugs
+
+v1.7.0-rc.01   2021-01-24
+===========================
+1. gtid supported
+2. plugin ck ddl supported(add,change column)
+3. plugin ck decimal64 tansfer decimal64, decimal128 and decimal256 tansfer to String
+4. plugin mysql filter data auto_increment be first
+5. fix other bugs
+
+v1.6.6-release   2021-01-17
+===========================
+1. fix rename table binlog parser error bug
+2. fix http basic auth bug
+
+v1.6.5-release   2021-01-10
+===========================
+1. fixed mysql desc SchemaName error bug
+2. fixed mysql ddl tansfer error bug
+3. fixed history task may recovry bug
+4. fixed history flow href error
+5. mysql plugin error update
+6. fixed may  time out contine bug
+7. other bug fixed
+
+v1.6.4-release   2021-01-03
+===========================
+1. 修复一个全量任务设置多线程同步造成的致命bug
+2. fixed TRANSACTION_CONTEXT_EVENT,VIEW_CHANGE_EVENT,XA_PREPARE_LOG_EVENT filter error
+3. add mysql version show
+4. add http api doc
+5. web view update and other bugs fixed
+
+v1.6.3-release   2020-12-27
+===========================
+1. 修复plugin mysql 主键非自增的时候丢数据的bug
+2. 修复plugin ddl 同步造成的阻塞的bug
+3. 修复plugin 同步出错不报错而造成丢数据的bug
+4. 修复dateime(6)类型默认值为0000-00-00 00:00:00.000000解析出错的bug
+5. 流量统计优化减少对map的操作，界面流量显示优化
+6. 用户登入验证Host支持多个Host配置，用逗号隔开
+7. plugin clickhouse 优化对源是float类型的数据转换
+8. 其他已知的部分bug修复及界面优化
+
+v1.6.2-release   2020-12-20
+===========================
+1. 登入用户新增 Host 验证功能
+2. 新增登入日志及自动禁IP功能
+
+v1.6.1-release   2020-12-16
+===========================
+1. 新增对mysql time(1-6),datetime(1-6),timestamp(1-6) 的支持( binlog 解析由 @zhwei820 提交合并 )
+2. 修复一个可以可能 造成丢数据的bug
+3. mysql 插件支持不同步数据的功能，只支持 SQL DDL
+4. 修复 binlog commit事件被过滤的bug
+
+v1.6.0-release   2020-11-29
+===========================
+1. http 框架代码结构变更,及可提供更为方便第三方自行开发管理界面系统
+2. 插件开发 接口变更, 让开发者更方便介入插件开发
+3. 采用 commit 事件作为位点管理
+4. mysql plugin 支持自动表识别及 DDL 同步功能
+5. clickhouse plugin 支持自动大小写转换等功能
+6. plugin mongodb 支持自动识别源表主键
+7. plugin redis,memcache 支持批量配置
+8. 在线修改目标库地址,在线生效,不用再重启进程
+9. 同步采用错过位点的方式错过数据，mysql,clickhouse,kafka等批量同步的插件也支持
+10. 目标库支持配置保持最小连接数,可用于连接lvs,ha等负载造成的集群长连接，分担压力
+11. 其他已知 bug 修复及界面等优化
+
+v1.6.0-beta.04   2020-11-22
+===========================
+plugin mysql:
+1. 新增自动匹配表结构配置支持DDL 同步功能
+2. 在没有指定字段映射的字段,则不会同步数据,目标表需要自行设置默认值
+
+plugin clickhouse:
+1. 自动建表的时候，新增将表名,字段转成大写或者小写的配置
+
+plugin kafka:
+1. 修复同步到kafka在未达到batchsize不同步的bug
+
+plugin mongodb:
+1. plugin mongodb 支持自动识别源表主键
+
+Other:
+1. 对sql语句中指定schema.table 进行执行,Binlog 过滤库表以sql 中的库表为准
+2. 修复全量配置between查询的时候，及全量多个表中，其中有一个表没有主键，报找不到ID等字段 的bug
+3. 修复流量显示选择统计时间无效的bug
+4. plugin redis,memcache 支持批量配置
+
+v1.6.0-beta.02   2020-11-12
+===========================
+1. 修复在提交mysql作为目标库的时候,部分mysql版本报错的bug
+2. mysql 插件错过位点逻辑变更 为更小位点则直接错过
+3. 表同步列表新增Skip 错误位点功能
+4. 自动去除输入框前后空格
+5. ck 提交错误和数据转换错误分开逻辑判断，减 少重连的概率
+6. 修复修改监听端口无效的bug
+7. 修复点击报警删除按钮提示json解析错误bug
+8. 表同步界面新增显示插件配置参数
+9. 修复非row事件的时候，标签替换失败的bug
+
+v1.6.0-beta.01   2020-10-31
+===========================
+1. http 框架封装修改,方便开发人员更容易介入开发
+2. 同步插件接口变更,并且采用commit事件位点进行保存,解决在同步大事务数据的时候，不用再自动寻找可解析的位点
+3. clickhouse插件，bifrost_data_version为0的bug修复
+4. 在线修改目标库地址,在线生效,不用再重启进程
+5. 目标库支持配置保持最小连接数,可用于连接lvs,ha等负载造成的集群长连接，分担压力
+6. 其他部分已知bug修复
+7. 部分界面显示优化
+
 v1.5.2-release   2020-10-16
 ===========================
 1. 修复enum可能解析错误的bug

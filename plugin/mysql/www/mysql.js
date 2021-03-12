@@ -1,5 +1,5 @@
 function doGetPluginParam(){
-	var result = {data:{},status:false,msg:"failed"}
+	var result = {data:{},status:false,msg:"failed",batchSupport:false}
 
 	var Table = $("#to_mysql_table").val();
     var Schema = $("#to_mysql_schema").val();
@@ -7,13 +7,9 @@ function doGetPluginParam(){
     var NullTransferDefault = $("#MySQL_NullTransferDefault").val();
     var SyncMode = $("#MySQL_SyncMode").val();
 
-    if (Schema == ""){
-        result.msg = "请选择 数据库!";
-        return result;
-    }
-
-    if (Table == ""){
-        result.msg = "请选择 数据数据表!";
+    if( Table != "" && SyncMode == "NoSyncData" ) {
+        result.msg = "不同步数据模式,只支持 自动表结构匹配表 模式!";
+        result.batchSupport = true;
         return result;
     }
 
@@ -24,28 +20,35 @@ function doGetPluginParam(){
 
 	var PriKey = [];
 	var Field = [];
-
-    $.each($("#ToTableFieldsTable tr"),function () {
-        var to_field_name = $(this).find("input[name=to_field_name]").val();
-        var from_field_name = $(this).find("input[name=from_field_name]").val();
-
-        var d       = {};
-        d["ToField"]     = to_field_name;
-        d["FromMysqlField"]  = from_field_name;
-        if($(this).find("input[name=pri_checkbox]").is(':checked')) {
-            if (to_field_name == "" || from_field_name == "") {
-                result.msg = "PRI:" + to_field_name + " not empty";
-                return result;
+    // 选择了指定目标表的情况下，并且非日志模式同步情况下，必须指定哪一个目标表字段为主键
+    if ( Table != "" ) {
+        $.each($("#ToTableFieldsTable tr"),function () {
+            var to_field_name = $(this).find("input[name=to_field_name]").val();
+            var from_field_name = $(this).find("input[name=from_field_name]").val();
+            var d       = {};
+            d["ToField"]     = to_field_name;
+            //假如没有配置任务同步,则代表这个表采用，默认值
+            if ( from_field_name == "" ){
+                return;
             }
-            PriKey.push(d);
+            d["FromMysqlField"]  = from_field_name;
+            if($(this).find("input[name=pri_checkbox]").is(':checked')) {
+                if (to_field_name == "" || from_field_name == "") {
+                    result.msg = "PRI:" + to_field_name + " not empty";
+                    return result;
+                }
+                PriKey.push(d);
+            }
+            Field.push(d);
+        });
+        if (PriKey.length == 0 && SyncMode != 'LogAppend') {
+            result.msg = "请选择一个字段为主键！";
+            return result;
         }
-        Field.push(d);
-    });
-
-    if(PriKey.length == 0 && SyncMode != 'LogAppend'){
-        result.msg = "请选择一个字段为主键！";
-        return result;
+    }else{
+        result.batchSupport = true;
     }
+
 
     $.each($("#TableFieldsContair input:checkbox"),function(){
         $(this).attr("checked",false);
@@ -70,7 +73,7 @@ function doGetPluginParam(){
 
 function GetToSchameList() {
     $.get(
-        "/bifrost/mysql/schemalist?toserverkey="+$("#addToServerKey").val(),
+        "/bifrost/plugin/mysql/schemalist?ToServerKey="+$("#addToServerKey").val(),
         function (d, status) {
             if (status != "success") {
                 //console.log("/bifrost/clickhouse/schemalist?toserverkey="+$("#addToServerKey").val());
@@ -93,7 +96,7 @@ function GetToSchameTableList(schemaName) {
         return
     }
     $.get(
-        "/bifrost/mysql/tablelist?toserverkey="+$("#addToServerKey").val()+"&schema="+schemaName,
+        "/bifrost/plugin/mysql/tablelist?ToServerKey="+$("#addToServerKey").val()+"&SchemaName="+schemaName,
         function (d, status) {
             if (status != "success") {
                 return false;
@@ -111,7 +114,7 @@ function GetToSchameTableList(schemaName) {
 function GetToTableDesc(schemaName,tableName) {
     $("#ToTableFieldsTable").html("");
     $.get(
-        "/bifrost/mysql/tableinfo?toserverkey="+$("#addToServerKey").val()+"&schema="+schemaName+"&table_name="+tableName,
+        "/bifrost/plugin/mysql/tableinfo?ToServerKey="+$("#addToServerKey").val()+"&SchemaName="+schemaName+"&TableName="+tableName,
         function (d, status) {
             if (status != "success") {
                 return false;
@@ -204,10 +207,9 @@ $("#TableFieldsContair p.fieldsname input:checkbox").click(
 });
 
 function showMySQLCreateSQL() {
-    var schemaName = $("#tableToServerListContair").attr("schema");
-    var tableName = $("#tableToServerListContair").attr("table_name");
+    var param = getPluginFunctionParam();
     $.get(
-        "/db/table/createsql?dbname="+getDbName()+"&schema_name="+schemaName+"&table_name="+tableName,
+        "/db/table/createsql?DbName="+param.DbName+"&SchemaName="+param.SchemaName+"&TableName="+param.TableName,
         function (d, status) {
             if (status != "success") {
                 return false;
@@ -217,3 +219,6 @@ function showMySQLCreateSQL() {
             $("#showMySQLCreateSQL").modal('show');
         });
 }
+
+// 设置不过滤 sql 事件, sql 将会提交到 mysql 插件来
+setPluginParamDefault("FilterQuery","false");

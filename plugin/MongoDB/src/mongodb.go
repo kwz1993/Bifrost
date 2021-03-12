@@ -11,38 +11,16 @@ import (
 	"log"
 )
 
-const VERSION  = "v1.3.0"
-const BIFROST_VERION = "v1.3.0"
+const VERSION  = "v1.6.0"
+const BIFROST_VERION = "v1.6.0"
 
 func init(){
-	pluginDriver.Register("MongoDB",&MyConn{},VERSION,BIFROST_VERION)
-}
-
-
-type MyConn struct {}
-
-
-func (MyConn *MyConn) Open(uri string) pluginDriver.ConnFun{
-	return newConn(uri)
-}
-
-
-func (MyConn *MyConn) GetUriExample() string{
-	return "[mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]"
-}
-
-func (MyConn *MyConn) CheckUri(uri string) error{
-	c := newConn(uri)
-	if c.status == "running"{
-		c.Close()
-		return nil
-	}else{
-		return c.err
-	}
+	pluginDriver.Register("MongoDB",NewConn,VERSION,BIFROST_VERION)
 }
 
 type Conn struct {
-	Uri    			string
+	pluginDriver.PluginDriverInterface
+	Uri    			*string
 	status 			string
 	conn   			*mgo.Session
 	err    			error
@@ -59,16 +37,36 @@ type PluginParam struct {
 	indexName			string
 }
 
-func newConn(uri string) *Conn{
-	f := &Conn{
-		Uri:uri,
-	}
-	f.Connect()
+func NewConn() pluginDriver.Driver {
+	f := &Conn{status:"close",err:fmt.Errorf("close")}
 	return f
 }
 
+func (This *Conn) SetOption(uri *string,param map[string]interface{}) {
+	This.Uri = uri
+	return
+}
 
-func (This *Conn) GetParam(p interface{}) (*PluginParam,error){
+func (This *Conn) Open() error {
+	This.Connect()
+	return nil
+}
+
+func (This *Conn) GetUriExample() string{
+	return "[mongodb://][user:pass@]host1[:port1][,host2[:port2],...][/database][?options]"
+}
+
+func (This *Conn) CheckUri() error{
+	This.Connect()
+	if This.status == "running"{
+		This.Close()
+		return nil
+	}else{
+		return This.err
+	}
+}
+
+func (This *Conn) GetParam(p interface{}) (*PluginParam,error) {
 	s,err := json.Marshal(p)
 	if err != nil{
 		return nil,err
@@ -78,8 +76,8 @@ func (This *Conn) GetParam(p interface{}) (*PluginParam,error){
 	if err2 != nil{
 		return nil,err2
 	}
-	if param.SchemaName == "" || param.TableName == "" || param.PrimaryKey == ""{
-		return nil,fmt.Errorf("SchemaName,TableName,PrimaryKey can't be empty")
+	if param.SchemaName == "" || param.TableName == "" {
+		return nil,fmt.Errorf("SchemaName,TableName can't be empty")
 	}
 	param.indexName = "bifrost_unique_index"
 	param.primaryKeys = strings.Split(param.PrimaryKey, ",")
@@ -88,7 +86,7 @@ func (This *Conn) GetParam(p interface{}) (*PluginParam,error){
 	return &param,nil
 }
 
-func (This *Conn) SetParam(p interface{}) (interface{},error){
+func (This *Conn) SetParam(p interface{}) (interface{},error) {
 	if p == nil{
 		return nil,fmt.Errorf("param is nil")
 	}
@@ -101,17 +99,9 @@ func (This *Conn) SetParam(p interface{}) (interface{},error){
 	}
 }
 
-func (This *Conn) GetConnStatus() string {
-	return This.status
-}
-
-func (This *Conn) SetConnStatus(status string) {
-	This.status = status
-}
-
 func (This *Conn) Connect() bool {
 	var err error
-	This.conn, err = mgo.Dial(This.Uri)
+	This.conn, err = mgo.Dial(*This.Uri)
 	if err != nil{
 		This.err = err
 		This.status = "close"
@@ -134,10 +124,6 @@ func (This *Conn) ReConnect() bool {
 	return  true
 }
 
-func (This *Conn) HeartCheck() {
-	return
-}
-
 func (This *Conn) Close() bool {
 	func() {
 		defer func() {
@@ -149,9 +135,17 @@ func (This *Conn) Close() bool {
 			This.conn.Close()
 		}
 	}()
+	This.status = "close"
 	This.conn = nil
 	This.err = fmt.Errorf("close")
 	return true
+}
+
+// 假如没有配置指定 PrimaryKey (mongodb 中的文档ID) 的时候，将 原表中的 Pri 主键当作 MongoDB 的文档ID
+func (This *Conn) initPrimaryKeys(data *pluginDriver.PluginDataType) {
+	if This.p.PrimaryKey == "" {
+		This.p.primaryKeys = data.Pri
+	}
 }
 
 func (This *Conn) createIndex(c *mgo.Collection) {
@@ -174,19 +168,28 @@ func (This *Conn) createIndex(c *mgo.Collection) {
 	}
 }
 
-func (This *Conn) Insert(data *pluginDriver.PluginDataType) (postion *pluginDriver.PluginBinlog,e error) {
+func (This *Conn) Insert(data *pluginDriver.PluginDataType,retry bool) (LastSuccessCommitData *pluginDriver.PluginDataType,ErrData *pluginDriver.PluginDataType,e error) {
+	if This.err != nil {
+		This.Connect()
+	}
+	if This.err != nil {
+		return nil,data,This.err
+	}
+	This.initPrimaryKeys(data)
+	if len(This.p.primaryKeys) == 0 {
+		return nil,data,fmt.Errorf("PrimaryKey is empty And Table No Pri!")
+	}
 	n := len(data.Rows)-1
 	SchemaName := fmt.Sprint(pluginDriver.TransfeResult(This.p.SchemaName, data, n))
 	TableName := fmt.Sprint(pluginDriver.TransfeResult(This.p.TableName, data, n))
-	if This.p.PrimaryKey == ""{
-		return nil,fmt.Errorf("PrimaryKey is empty")
-	}
+	/*
 	if _,ok := data.Rows[n][This.p.PrimaryKey];!ok{
-		return nil,fmt.Errorf("PrimaryKey "+ This.p.PrimaryKey +" is not exsit")
+		return nil,data,fmt.Errorf("PrimaryKey "+ This.p.PrimaryKey +" is not exsit")
 	}
+	*/
 	defer func() {
 		if err := recover();err != nil{
-			postion = nil
+			LastSuccessCommitData = nil
 			e = fmt.Errorf(string(debug.Stack()))
 			This.err = e
 			log.Println(e)
@@ -200,27 +203,34 @@ func (This *Conn) Insert(data *pluginDriver.PluginDataType) (postion *pluginDriv
 		if _,ok := data.Rows[n][key];ok{
 			k[key] = data.Rows[n][key]
 		}else{
-			return nil,fmt.Errorf("key:"+key+ " no exsit")
+			return nil,data,fmt.Errorf("key:"+key+ " no exsit")
 		}
 	}
 	_,err:=c.Upsert(k,data.Rows[n])
 	if err !=nil{
-		return nil,err
+		return nil,data,err
 	}
-	return &pluginDriver.PluginBinlog{data.BinlogFileNum,data.BinlogPosition},nil
+	return nil,nil,nil
 }
 
-func (This *Conn) Update(data *pluginDriver.PluginDataType) (*pluginDriver.PluginBinlog,error) {
-	return This.Insert(data)
+func (This *Conn) Update(data *pluginDriver.PluginDataType,retry bool) (LastSuccessCommitData *pluginDriver.PluginDataType,ErrData *pluginDriver.PluginDataType,e error) {
+	return This.Insert(data,retry)
 }
 
-func (This *Conn) Del(data *pluginDriver.PluginDataType) (postion *pluginDriver.PluginBinlog,e error) {
-	if This.p.PrimaryKey == ""{
-		return nil,fmt.Errorf("PrimaryKey is empty")
+func (This *Conn) Del(data *pluginDriver.PluginDataType,retry bool) (LastSuccessCommitData *pluginDriver.PluginDataType,ErrData *pluginDriver.PluginDataType,e error) {
+	if This.err != nil {
+		This.Connect()
+	}
+	if This.err != nil {
+		return nil,data,This.err
+	}
+	This.initPrimaryKeys(data)
+	if len(This.p.primaryKeys) == 0 {
+		return nil,data,fmt.Errorf("PrimaryKey is empty And Table No Pri!")
 	}
 	defer func() {
 		if err := recover();err != nil{
-			postion = nil
+			LastSuccessCommitData = nil
 			e = fmt.Errorf(string(debug.Stack()))
 			This.err = e
 			log.Println(string(debug.Stack()))
@@ -236,20 +246,20 @@ func (This *Conn) Del(data *pluginDriver.PluginDataType) (postion *pluginDriver.
 		if _,ok := data.Rows[0][key];ok{
 			k[key] = data.Rows[0][key]
 		}else{
-			return nil,fmt.Errorf("key:"+key+ " no exsit")
+			return nil,data,fmt.Errorf("key:"+key+ " no exsit")
 		}
 	}
 	err := c.Remove(k)
-	if err !=nil{
-		return nil,err
+	if err != nil {
+		return nil,data,err
 	}
-	return &pluginDriver.PluginBinlog{data.BinlogFileNum,data.BinlogPosition},nil
+	return nil,nil,nil
 }
 
-func (This *Conn) Query(data *pluginDriver.PluginDataType) (*pluginDriver.PluginBinlog,error) {
-	return &pluginDriver.PluginBinlog{data.BinlogFileNum,data.BinlogPosition},nil
+func (This *Conn) Query(data *pluginDriver.PluginDataType,retry bool) (LastSuccessCommitData *pluginDriver.PluginDataType,ErrData *pluginDriver.PluginDataType,e error) {
+	return data,nil,nil
 }
 
-func (This *Conn) Commit() (*pluginDriver.PluginBinlog,error){
-	return nil,nil
+func (This *Conn) Commit(data *pluginDriver.PluginDataType,retry bool) (LastSuccessCommitData *pluginDriver.PluginDataType,ErrData *pluginDriver.PluginDataType,e error) {
+	return data,nil,nil
 }

@@ -29,3 +29,23 @@ var PluginSyncRetrycTime int = 5
 
 // Bifrost 根目录文件夹绝对路径
 var BifrostDir string = ""
+
+var BifrostConfigFile string = ""
+
+var Listen string = "0.0.0.0:21036"
+
+var BifrostPidFile string = ""
+
+var BifrostLogDir string = ""
+
+var BifrostAdminTemplateDir string = ""
+
+var BifrostPluginTemplateDir string = ""
+
+var DynamicPlugin bool = false
+
+// 每个IP连续登入失败多少次,则自动封IP,拒绝登入
+var RefuseIpLoginFailedCount int = 10
+
+// 间隔多久解封一次IP,单位秒,默认4小时
+var RefuseIpTimeOut int64 = 14400

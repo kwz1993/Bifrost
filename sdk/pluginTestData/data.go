@@ -12,17 +12,17 @@ import (
 	"time"
 )
 
-var MysqlCreateTalbeSQL  = "CREATE TABLE `binlog_field_test` ( `id` INT(11) UNSIGNED NOT NULL AUTO_INCREMENT, `testtinyint` TINYINT(4) NOT NULL DEFAULT '-1', `testsmallint` SMALLINT(6) NOT NULL DEFAULT '-2', `testmediumint` MEDIUMINT(8) NOT NULL DEFAULT '-3', `testint` INT(11) NOT NULL DEFAULT '-4', `testbigint` BIGINT(20) NOT NULL DEFAULT '-5', `testvarchar` VARCHAR(400) NOT NULL, `testchar` CHAR(2) NOT NULL, `testenum` ENUM('en1', 'en2', 'en3') NOT NULL DEFAULT 'en1', `testset` SET('set1', 'set2', 'set3') NOT NULL DEFAULT 'set1', `testtime` TIME NOT NULL DEFAULT '00:00:00', `testdate` DATE NOT NULL DEFAULT '0000-00-00', `testyear` YEAR(4) NOT NULL DEFAULT '1989', `testtimestamp` TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP, `testdatetime` DATETIME NOT NULL DEFAULT '0000-00-00 00:00:00', `testfloat` FLOAT(9, 2) NOT NULL DEFAULT '0.00', `testdouble` DOUBLE(9, 2) NOT NULL DEFAULT '0.00', `testdecimal` DECIMAL(9, 2) NOT NULL DEFAULT '0.00', `testtext` TEXT NOT NULL, `testblob` BLOB NOT NULL, `testbit` BIT(64) NOT NULL DEFAULT b'0', `testbool` TINYINT(1) NOT NULL DEFAULT '0', `testmediumblob` MEDIUMBLOB NOT NULL, `testlongblob` LONGBLOB NOT NULL, `testtinyblob` TINYBLOB NOT NULL, `test_unsinged_tinyint` TINYINT(4) UNSIGNED NOT NULL DEFAULT '1', `test_unsinged_smallint` SMALLINT(6) UNSIGNED NOT NULL DEFAULT '2', `test_unsinged_mediumint` MEDIUMINT(8) UNSIGNED NOT NULL DEFAULT '3', `test_unsinged_int` INT(11) UNSIGNED NOT NULL DEFAULT '4', `test_unsinged_bigint` BIGINT(20) UNSIGNED NOT NULL DEFAULT '5',testjson json, PRIMARY KEY (`id`) ) ENGINE = MYISAM AUTO_INCREMENT = 3 CHARSET = utf8"
+var MysqlCreateTalbeSQL  = "CREATE TABLE `bifrost_test`.`binlog_field_test` (`id` int(11) unsigned NOT NULL AUTO_INCREMENT,`testtinyint` tinyint(4) NOT NULL DEFAULT '-1',`testsmallint` smallint(6) NOT NULL DEFAULT '-2',`testmediumint` mediumint(8) NOT NULL DEFAULT '-3',`testint` int(11) NOT NULL DEFAULT '-4',`testbigint` bigint(20) NOT NULL DEFAULT '-5',`testvarchar` varchar(10) NOT NULL,`testchar` char(2) NOT NULL,`testenum` enum('en1','en2','en3') NOT NULL DEFAULT 'en1',`testset` set('set1','set2','set3') NOT NULL DEFAULT 'set1',`testtime` time NOT NULL DEFAULT '00:00:00',`testdate` date NOT NULL DEFAULT '0000-00-00',`testyear` year(4) NOT NULL DEFAULT '1989',`testtimestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,`testdatetime` datetime NOT NULL DEFAULT '0000-00-00 00:00:00',`testfloat` float(9,2) NOT NULL DEFAULT '0.00',`testdouble` double(9,2) NOT NULL DEFAULT '0.00',`testdecimal` decimal(9,2) NOT NULL DEFAULT '0.00',`testdecimal2` decimal(10,4) NOT NULL DEFAULT '0.00',`testdecimal3` decimal(20,4) NOT NULL DEFAULT '0.00',`testdecimal4` decimal(30,5) NOT NULL DEFAULT '0.00',`testtext` text NOT NULL,`testblob` blob NOT NULL,`testbit` bit(8) NOT NULL DEFAULT b'0',`testbool` tinyint(1) NOT NULL DEFAULT '0',`testmediumblob` mediumblob NOT NULL,`testlongblob` longblob NOT NULL,`testtinyblob` tinyblob NOT NULL,`test_unsinged_tinyint` tinyint(4) unsigned NOT NULL DEFAULT '1',`test_unsinged_smallint` smallint(6) unsigned NOT NULL DEFAULT '2',`test_unsinged_mediumint` mediumint(8) unsigned NOT NULL DEFAULT '3',`test_unsinged_int` int(11) unsigned NOT NULL DEFAULT '4',`test_unsinged_bigint` bigint(20) unsigned NOT NULL DEFAULT '5',`testtime2_1` time(1) NOT NULL DEFAULT '00:00:00.0',`testtime2_2` time(2) NOT NULL DEFAULT '00:00:00.00',`testtime2_3` time(3) NOT NULL DEFAULT '00:00:00.000',`testtime2_4` time(4) NOT NULL DEFAULT '00:00:00.0000',`testtime2_5` time(5) NOT NULL DEFAULT '00:00:00.00000',`testtime2_6` time(6) NOT NULL DEFAULT '00:00:00.000000',`testtimestamp2_1` timestamp(1) NOT NULL DEFAULT CURRENT_TIMESTAMP(1),`testtimestamp2_2` timestamp(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2),`testtimestamp2_3` timestamp(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),`testtimestamp2_4` timestamp(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4),`testtimestamp2_5` timestamp(5) NOT NULL DEFAULT CURRENT_TIMESTAMP(5),`testtimestamp2_6` timestamp(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),`testdatetime2_1` datetime(1) NOT NULL DEFAULT '0000-00-00 00:00:00.0',`testdatetime2_2` datetime(2) NOT NULL DEFAULT '0000-00-00 00:00:00.00',`testdatetime2_3` datetime(3) NOT NULL DEFAULT '0000-00-00 00:00:00.000',`testdatetime2_4` datetime(4) NOT NULL DEFAULT '0000-00-00 00:00:00.0000',`testdatetime2_5` datetime(5) NOT NULL DEFAULT '0000-00-00 00:00:00.00000',`testdatetime2_6` datetime(6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000',`test_json` json,PRIMARY KEY (`id`)) ENGINE=MyISAM AUTO_INCREMENT=0 DEFAULT CHARSET=utf8"
 
 /*
-  CREATE TABLE `binlog_field_test` (
+CREATE TABLE `bifrost_test`.`binlog_field_test` (
   `id` INT (11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `testtinyint` TINYINT (4) NOT NULL DEFAULT '-1',
   `testsmallint` SMALLINT (6) NOT NULL DEFAULT '-2',
   `testmediumint` MEDIUMINT (8) NOT NULL DEFAULT '-3',
   `testint` INT (11) NOT NULL DEFAULT '-4',
   `testbigint` BIGINT (20) NOT NULL DEFAULT '-5',
-  `testvarchar` VARCHAR (400) NOT NULL,
+  `testvarchar` VARCHAR (10) NOT NULL,
   `testchar` CHAR(2) NOT NULL,
   `testenum` ENUM ('en1', 'en2', 'en3') NOT NULL DEFAULT 'en1',
   `testset` SET ('set1', 'set2', 'set3') NOT NULL DEFAULT 'set1',
@@ -34,9 +34,12 @@ var MysqlCreateTalbeSQL  = "CREATE TABLE `binlog_field_test` ( `id` INT(11) UNSI
   `testfloat` FLOAT (9, 2) NOT NULL DEFAULT '0.00',
   `testdouble` DOUBLE (9, 2) NOT NULL DEFAULT '0.00',
   `testdecimal` DECIMAL (9, 2) NOT NULL DEFAULT '0.00',
+  `testdecimal2` DECIMAL (10, 4) NOT NULL DEFAULT '0.00',
+  `testdecimal3` DECIMAL (20, 4) NOT NULL DEFAULT '0.00',
+  `testdecimal4` DECIMAL (30, 5) NOT NULL DEFAULT '0.00',
   `testtext` TEXT NOT NULL,
   `testblob` BLOB NOT NULL,
-  `testbit` BIT (64) NOT NULL DEFAULT b'0',
+  `testbit` BIT (8) NOT NULL DEFAULT b'0',
   `testbool` TINYINT (1) NOT NULL DEFAULT '0',
   `testmediumblob` MEDIUMBLOB NOT NULL,
   `testlongblob` LONGBLOB NOT NULL,
@@ -46,12 +49,30 @@ var MysqlCreateTalbeSQL  = "CREATE TABLE `binlog_field_test` ( `id` INT(11) UNSI
   `test_unsinged_mediumint` MEDIUMINT (8) UNSIGNED NOT NULL DEFAULT '3',
   `test_unsinged_int` INT (11) UNSIGNED NOT NULL DEFAULT '4',
   `test_unsinged_bigint` BIGINT (20) UNSIGNED NOT NULL DEFAULT '5',
-  `testjson` JSON,
+  `testtime2_1` TIME(1) NOT NULL DEFAULT '00:00:00.0',
+  `testtime2_2` TIME(2) NOT NULL DEFAULT '00:00:00.00',
+  `testtime2_3` TIME(3) NOT NULL DEFAULT '00:00:00.000',
+  `testtime2_4` TIME(4) NOT NULL DEFAULT '00:00:00.0000',
+  `testtime2_5` TIME(5) NOT NULL DEFAULT '00:00:00.00000',
+  `testtime2_6` TIME(6) NOT NULL DEFAULT '00:00:00.000000',
+  `testtimestamp2_1` TIMESTAMP(1) NOT NULL DEFAULT CURRENT_TIMESTAMP(1),
+  `testtimestamp2_2` TIMESTAMP(2) NOT NULL DEFAULT CURRENT_TIMESTAMP(2),
+  `testtimestamp2_3` TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  `testtimestamp2_4` TIMESTAMP(4) NOT NULL DEFAULT CURRENT_TIMESTAMP(4),
+  `testtimestamp2_5` TIMESTAMP(5) NOT NULL DEFAULT CURRENT_TIMESTAMP(5),
+  `testtimestamp2_6` TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `testdatetime2_1` DATETIME (1) NOT NULL DEFAULT '0000-00-00 00:00:00.0',
+  `testdatetime2_2` DATETIME (2) NOT NULL DEFAULT '0000-00-00 00:00:00.00',
+  `testdatetime2_3` DATETIME (3) NOT NULL DEFAULT '0000-00-00 00:00:00.000',
+  `testdatetime2_4` DATETIME (4) NOT NULL DEFAULT '0000-00-00 00:00:00.0000',
+  `testdatetime2_5` DATETIME (5) NOT NULL DEFAULT '0000-00-00 00:00:00.00000',
+  `testdatetime2_6` DATETIME (6) NOT NULL DEFAULT '0000-00-00 00:00:00.000000',
+  `test_json` json,
   PRIMARY KEY (`id`)
-) ENGINE = MYISAM AUTO_INCREMENT = 3 DEFAULT CHARSET = utf8
+) ENGINE = MYISAM AUTO_INCREMENT = 0 DEFAULT CHARSET = utf8
 */
 
-var columnJsonString = `[{"ColumnName":"id","ColumnKey":"PRI","ColumnDefault":"NULL","DataType":"int","Extra":"auto_increment","ColumnType":"int(11) unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":true,"AutoIncrement":true,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Value":null},{"ColumnName":"testtinyint","ColumnKey":"","ColumnDefault":"-1","DataType":"tinyint","Extra":"","ColumnType":"tinyint(4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":3,"Value":null},{"ColumnName":"testsmallint","ColumnKey":"","ColumnDefault":"-2","DataType":"smallint","Extra":"","ColumnType":"smallint(6)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":5,"Value":null},{"ColumnName":"testmediumint","ColumnKey":"","ColumnDefault":"-3","DataType":"mediumint","Extra":"","ColumnType":"mediumint(8)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":7,"Value":null},{"ColumnName":"testint","ColumnKey":"","ColumnDefault":"-4","DataType":"int","Extra":"","ColumnType":"int(11)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Value":null},{"ColumnName":"testbigint","ColumnKey":"","ColumnDefault":"-5","DataType":"bigint","Extra":"","ColumnType":"bigint(20)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":19,"Value":null},{"ColumnName":"testvarchar","ColumnKey":"","ColumnDefault":"NULL","DataType":"varchar","Extra":"","ColumnType":"varchar(10)","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":10,"NumbericPrecision":0,"Value":null},{"ColumnName":"testchar","ColumnKey":"","ColumnDefault":"NULL","DataType":"char","Extra":"","ColumnType":"char(2)","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":2,"NumbericPrecision":0,"Value":null},{"ColumnName":"testenum","ColumnKey":"","ColumnDefault":"en1","DataType":"enum","Extra":"","ColumnType":"enum('en1','en2','en3')","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":["en1","en2","en3"],"SetValues":[],"CharacterMaximumLength":3,"NumbericPrecision":0,"Value":null},{"ColumnName":"testset","ColumnKey":"","ColumnDefault":"set1","DataType":"set","Extra":"","ColumnType":"set('set1','set2','set3')","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":["set1","set2","set3"],"CharacterMaximumLength":14,"NumbericPrecision":0,"Value":null},{"ColumnName":"testtime","ColumnKey":"","ColumnDefault":"00:00:00","DataType":"time","Extra":"","ColumnType":"time","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Value":null},{"ColumnName":"testdate","ColumnKey":"","ColumnDefault":"0000-00-00","DataType":"date","Extra":"","ColumnType":"date","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Value":null},{"ColumnName":"testyear","ColumnKey":"","ColumnDefault":"1989","DataType":"year","Extra":"","ColumnType":"year(4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Value":null},{"ColumnName":"testtimestamp","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP","DataType":"timestamp","Extra":"","ColumnType":"timestamp","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Value":null},{"ColumnName":"testdatetime","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00","DataType":"datetime","Extra":"","ColumnType":"datetime","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Value":null},{"ColumnName":"testfloat","ColumnKey":"","ColumnDefault":"0.00","DataType":"float","Extra":"","ColumnType":"float(9,2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":2,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":9,"Value":null},{"ColumnName":"testdouble","ColumnKey":"","ColumnDefault":"0.00","DataType":"double","Extra":"","ColumnType":"double(9,2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":2,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":9,"Value":null},{"ColumnName":"testdecimal","ColumnKey":"","ColumnDefault":"0.00","DataType":"decimal","Extra":"","ColumnType":"decimal(9,2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":2,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":9,"Value":null},{"ColumnName":"testtext","ColumnKey":"","ColumnDefault":"NULL","DataType":"text","Extra":"","ColumnType":"text","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":65535,"NumbericPrecision":0,"Value":null},{"ColumnName":"testblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"blob","Extra":"","ColumnType":"blob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":65535,"NumbericPrecision":0,"Value":null},{"ColumnName":"testbit","ColumnKey":"","ColumnDefault":"","DataType":"bit","Extra":"","ColumnType":"bit(8)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":8,"Value":null},{"ColumnName":"testbool","ColumnKey":"","ColumnDefault":"0","DataType":"tinyint","Extra":"","ColumnType":"tinyint(1)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":true,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":3,"Value":null},{"ColumnName":"testmediumblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"mediumblob","Extra":"","ColumnType":"mediumblob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":16777215,"NumbericPrecision":0,"Value":null},{"ColumnName":"testlongblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"longblob","Extra":"","ColumnType":"longblob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":4294967295,"NumbericPrecision":0,"Value":null},{"ColumnName":"testtinyblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"tinyblob","Extra":"","ColumnType":"tinyblob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":255,"NumbericPrecision":0,"Value":null},{"ColumnName":"test_unsinged_tinyint","ColumnKey":"","ColumnDefault":"1","DataType":"tinyint","Extra":"","ColumnType":"tinyint(4) unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":3,"Value":null},{"ColumnName":"test_unsinged_smallint","ColumnKey":"","ColumnDefault":"2","DataType":"smallint","Extra":"","ColumnType":"smallint(6) unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":5,"Value":null},{"ColumnName":"test_unsinged_mediumint","ColumnKey":"","ColumnDefault":"3","DataType":"mediumint","Extra":"","ColumnType":"mediumint(8) unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":7,"Value":null},{"ColumnName":"test_unsinged_int","ColumnKey":"","ColumnDefault":"4","DataType":"int","Extra":"","ColumnType":"int(11) unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Value":null},{"ColumnName":"test_unsinged_bigint","ColumnKey":"","ColumnDefault":"5","DataType":"bigint","Extra":"","ColumnType":"bigint(20) unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":20,"Value":null},{"ColumnName":"testjson","ColumnKey":"","ColumnDefault":"NULL","DataType":"json","Extra":"","ColumnType":"json","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":65535,"NumbericPrecision":0,"Value":null}]`
+var columnJsonString = `[{"ColumnName":"id","ColumnKey":"PRI","ColumnDefault":"NULL","DataType":"int","Extra":"auto_increment","ColumnType":"int unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":true,"AutoIncrement":true,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testtinyint","ColumnKey":"","ColumnDefault":"-1","DataType":"tinyint","Extra":"","ColumnType":"tinyint","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":3,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testsmallint","ColumnKey":"","ColumnDefault":"-2","DataType":"smallint","Extra":"","ColumnType":"smallint","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":5,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testmediumint","ColumnKey":"","ColumnDefault":"-3","DataType":"mediumint","Extra":"","ColumnType":"mediumint","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":7,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testint","ColumnKey":"","ColumnDefault":"-4","DataType":"int","Extra":"","ColumnType":"int","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testbigint","ColumnKey":"","ColumnDefault":"-5","DataType":"bigint","Extra":"","ColumnType":"bigint","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":19,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testvarchar","ColumnKey":"","ColumnDefault":"NULL","DataType":"varchar","Extra":"","ColumnType":"varchar(10)","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":10,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testchar","ColumnKey":"","ColumnDefault":"NULL","DataType":"char","Extra":"","ColumnType":"char(2)","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":2,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testenum","ColumnKey":"","ColumnDefault":"en1","DataType":"enum","Extra":"","ColumnType":"enum('en1','en2','en3')","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":["en1","en2","en3"],"SetValues":[],"CharacterMaximumLength":3,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testset","ColumnKey":"","ColumnDefault":"set1","DataType":"set","Extra":"","ColumnType":"set('set1','set2','set3')","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":["set1","set2","set3"],"CharacterMaximumLength":14,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testtime","ColumnKey":"","ColumnDefault":"00:00:00","DataType":"time","Extra":"","ColumnType":"time","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdate","ColumnKey":"","ColumnDefault":"0000-00-00","DataType":"date","Extra":"","ColumnType":"date","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testyear","ColumnKey":"","ColumnDefault":"1989","DataType":"year","Extra":"","ColumnType":"year","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00","DataType":"datetime","Extra":"","ColumnType":"datetime","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testfloat","ColumnKey":"","ColumnDefault":"0.00","DataType":"float","Extra":"","ColumnType":"float(9,2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":2,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":9,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdouble","ColumnKey":"","ColumnDefault":"0.00","DataType":"double","Extra":"","ColumnType":"double(9,2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":2,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":9,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdecimal","ColumnKey":"","ColumnDefault":"0.00","DataType":"decimal","Extra":"","ColumnType":"decimal(9,2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":2,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":9,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdecimal2","ColumnKey":"","ColumnDefault":"0.0000","DataType":"decimal","Extra":"","ColumnType":"decimal(10,4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":4,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdecimal3","ColumnKey":"","ColumnDefault":"0.0000","DataType":"decimal","Extra":"","ColumnType":"decimal(20,4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":4,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":20,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testdecimal4","ColumnKey":"","ColumnDefault":"0.00000","DataType":"decimal","Extra":"","ColumnType":"decimal(30,5)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":5,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":30,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testtext","ColumnKey":"","ColumnDefault":"NULL","DataType":"text","Extra":"","ColumnType":"text","CharacterSetName":"utf8","CollationName":"utf8_general_ci","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":65535,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"blob","Extra":"","ColumnType":"blob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":65535,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testbit","ColumnKey":"","ColumnDefault":"","DataType":"bit","Extra":"","ColumnType":"bit(8)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":8,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testbool","ColumnKey":"","ColumnDefault":"0","DataType":"tinyint","Extra":"","ColumnType":"tinyint(1)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":true,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":3,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testmediumblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"mediumblob","Extra":"","ColumnType":"mediumblob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":16777215,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testlongblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"longblob","Extra":"","ColumnType":"longblob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":4294967295,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testtinyblob","ColumnKey":"","ColumnDefault":"NULL","DataType":"tinyblob","Extra":"","ColumnType":"tinyblob","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":255,"NumbericPrecision":0,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"test_unsinged_tinyint","ColumnKey":"","ColumnDefault":"1","DataType":"tinyint","Extra":"","ColumnType":"tinyint unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":3,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"test_unsinged_smallint","ColumnKey":"","ColumnDefault":"2","DataType":"smallint","Extra":"","ColumnType":"smallint unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":5,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"test_unsinged_mediumint","ColumnKey":"","ColumnDefault":"3","DataType":"mediumint","Extra":"","ColumnType":"mediumint unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":7,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"test_unsinged_int","ColumnKey":"","ColumnDefault":"4","DataType":"int","Extra":"","ColumnType":"int unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":10,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"test_unsinged_bigint","ColumnKey":"","ColumnDefault":"5","DataType":"bigint","Extra":"","ColumnType":"bigint unsigned","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":true,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":20,"Fsp":0,"IsNullable":"NO","Value":null},{"ColumnName":"testtime2_1","ColumnKey":"","ColumnDefault":"00:00:00.0","DataType":"time","Extra":"","ColumnType":"time(1)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":1,"IsNullable":"NO","Value":null},{"ColumnName":"testtime2_2","ColumnKey":"","ColumnDefault":"00:00:00.00","DataType":"time","Extra":"","ColumnType":"time(2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":2,"IsNullable":"NO","Value":null},{"ColumnName":"testtime2_3","ColumnKey":"","ColumnDefault":"00:00:00.000","DataType":"time","Extra":"","ColumnType":"time(3)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":3,"IsNullable":"NO","Value":null},{"ColumnName":"testtime2_4","ColumnKey":"","ColumnDefault":"00:00:00.0000","DataType":"time","Extra":"","ColumnType":"time(4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":4,"IsNullable":"NO","Value":null},{"ColumnName":"testtime2_5","ColumnKey":"","ColumnDefault":"00:00:00.00000","DataType":"time","Extra":"","ColumnType":"time(5)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":5,"IsNullable":"NO","Value":null},{"ColumnName":"testtime2_6","ColumnKey":"","ColumnDefault":"00:00:00.000000","DataType":"time","Extra":"","ColumnType":"time(6)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":6,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp2_1","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP(1)","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp(1)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":1,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp2_2","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP(2)","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp(2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":2,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp2_3","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP(3)","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp(3)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":3,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp2_4","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP(4)","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp(4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":4,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp2_5","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP(5)","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp(5)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":5,"IsNullable":"NO","Value":null},{"ColumnName":"testtimestamp2_6","ColumnKey":"","ColumnDefault":"CURRENT_TIMESTAMP(6)","DataType":"timestamp","Extra":"DEFAULT_GENERATED","ColumnType":"timestamp(6)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":6,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime2_1","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00.0","DataType":"datetime","Extra":"","ColumnType":"datetime(1)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":1,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime2_2","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00.00","DataType":"datetime","Extra":"","ColumnType":"datetime(2)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":2,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime2_3","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00.000","DataType":"datetime","Extra":"","ColumnType":"datetime(3)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":3,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime2_4","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00.0000","DataType":"datetime","Extra":"","ColumnType":"datetime(4)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":4,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime2_5","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00.00000","DataType":"datetime","Extra":"","ColumnType":"datetime(5)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":5,"IsNullable":"NO","Value":null},{"ColumnName":"testdatetime2_6","ColumnKey":"","ColumnDefault":"0000-00-00 00:00:00.000000","DataType":"datetime","Extra":"","ColumnType":"datetime(6)","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":6,"IsNullable":"NO","Value":null},{"ColumnName":"test_json","ColumnKey":"","ColumnDefault":"NULL","DataType":"json","Extra":"","ColumnType":"json","CharacterSetName":"NULL","CollationName":"NULL","NumbericScale":0,"IsBool":false,"Unsigned":false,"IsPrimary":false,"AutoIncrement":false,"EnumValues":[],"SetValues":[],"CharacterMaximumLength":0,"NumbericPrecision":0,"Fsp":0,"IsNullable":"YES","Value":null}]`
 
 type Column struct {
 	ColumnName string
@@ -71,6 +92,7 @@ type Column struct {
 	SetValues []string
 	CharacterMaximumLength int
 	NumbericPrecision int
+	IsNullable string
 	Value interface{}
 }
 
@@ -103,6 +125,40 @@ func GetRandomString(l int,cn int) string {
 	return string(result1)+result2
 }
 
+func GetTimeAndNsen(ColumnDataType string) string {
+	ColumnDataType = strings.ToLower(ColumnDataType)
+	var timeFormat string
+	i := strings.Index(ColumnDataType,"(")
+	var columnType string
+	if i < 0 {
+		columnType = ColumnDataType
+	}else{
+		columnType = ColumnDataType[0:i]
+	}
+	switch columnType {
+	case "time":
+		timeFormat = "15:03:04"
+	case "timestamp","datetime":
+		timeFormat = "2006-01-02 15:03:04"
+	case "year":
+		timeFormat = "2006"
+	default:
+		return ""
+	}
+	var n = 0
+	var err error
+	if i > 0 {
+		n,err = strconv.Atoi(ColumnDataType[i+1:len(ColumnDataType)-1])
+		if err != nil {
+			panic(err.Error() )
+		}
+	}
+	if n > 0 {
+		timeFormat += "." + fmt.Sprintf("%0*d",n,0)
+	}
+	value := time.Now().Format(timeFormat)
+	return value
+}
 
 type Event struct {
 	Schema string
@@ -114,12 +170,13 @@ type Event struct {
 	idVal uint64   			//随机生成数据的时候，指定的id值。随机生成一次数据后自动清0
 	saveHistory bool  		//是否保存历史生成的随机数据。假如一个id 有insert ,update 则只保存update之后的数据，假如后面又有delete了，则会被清除掉这个id数据
 	isNull bool				// 是否生成null值的数据，默认为false
+	ColumnMapping map[string]string  // 字段类型
 }
 
 func NewEvent() *Event {
 	var data []*Column
 	json.Unmarshal([]byte(columnJsonString),&data)
-	return &Event{
+	event := &Event{
 		Schema:"bifrost_test",
 		Talbe:"binlog_field_test",
 		AutoIncrementNum:0,
@@ -130,6 +187,8 @@ func NewEvent() *Event {
 		saveHistory:true,
 		isNull:false,
 	}
+	event.initTableColumnMapping()
+	return event
 }
 
 func (This *Event) SetSchema(name string) *Event{
@@ -202,6 +261,65 @@ func (This *Event) getRandDataFromMap(id uint64) map[string]interface{}  {
 	return nil
 }
 
+func (This *Event) GetTableColumnMapping() map[string]string {
+	return This.ColumnMapping
+}
+
+func (This *Event) initTableColumnMapping()  {
+	ColumnMapping := make(map[string]string)
+	for _,v := range This.ColumnList {
+		var columnMappingType string
+		switch v.DataType {
+		case "tinyint":
+			if v.Unsigned {
+				columnMappingType = "uint8"
+			} else {
+				if v.ColumnType == "tinyint(1)" {
+					columnMappingType = "bool"
+				} else {
+					columnMappingType = "int8"
+				}
+			}
+		case "smallint":
+			if v.Unsigned {
+				columnMappingType = "uint16"
+			} else {
+				columnMappingType = "int16"
+			}
+		case "mediumint":
+			if v.Unsigned {
+				columnMappingType = "uint24"
+			} else {
+				columnMappingType = "int24"
+			}
+		case "int":
+			if v.Unsigned {
+				columnMappingType = "uint32"
+			} else {
+				columnMappingType = "int32"
+			}
+		case "bigint":
+			if v.Unsigned {
+				columnMappingType = "uint64"
+			} else {
+				columnMappingType = "int64"
+			}
+		case "numeric":
+			columnMappingType = strings.Replace(v.ColumnType, "numeric", "decimal", 1)
+		case "real":
+			columnMappingType = strings.Replace(v.ColumnType, "real", "double", 1)
+		default:
+			columnMappingType = v.ColumnType
+			break
+		}
+		if v.IsNullable == "YES" {
+			ColumnMapping[v.ColumnName] = "Nullable("+columnMappingType+")"
+		}else{
+			ColumnMapping[v.ColumnName] = columnMappingType
+		}
+	}
+	This.ColumnMapping = ColumnMapping
+}
 
 //随机生成数据
 func (This *Event) getSchemaTableFieldAndVal(columnList []*Column,eventType EventType ) ([]interface{},map[string]interface{}){
@@ -383,7 +501,7 @@ func (This *Event) getSchemaTableFieldAndVal(columnList []*Column,eventType Even
 				data = append(data, Value)
 				break
 			case "time":
-				Value := time.Now().Format("15:04:05")
+				Value := GetTimeAndNsen(columnType.ColumnType)
 				columnType.Value = Value
 				data = append(data, Value)
 				break
@@ -393,7 +511,7 @@ func (This *Event) getSchemaTableFieldAndVal(columnList []*Column,eventType Even
 				data = append(data, Value)
 				break
 			case "datetime", "timestamp":
-				Value := time.Now().Format("2006-01-02 15:04:05")
+				Value := GetTimeAndNsen(columnType.ColumnType)
 				columnType.Value = Value
 				data = append(data, Value)
 				break
@@ -548,10 +666,10 @@ func (This *Event) GetJsonData() map[string][]map[string]interface{} {
 }
 
 
-func (This *Event) GetPri() []*string {
+func (This *Event) GetPri() []string {
 	var id  string = "id"
-	Pri := make([]*string,1)
-	Pri[0] = &id
+	Pri := make([]string,1)
+	Pri[0] = id
 	return Pri
 }
 
@@ -571,6 +689,7 @@ func (This *Event) GetTestInsertData() *pluginDriver.PluginDataType{
 		BinlogFileNum 	: 10,
 		BinlogPosition 	: This.position,
 		Pri				: This.GetPri(),
+		ColumnMapping   : This.GetTableColumnMapping(),
 	}
 }
 
@@ -613,6 +732,7 @@ func (This *Event) GetTestUpdateData() *pluginDriver.PluginDataType{
 		BinlogFileNum 	: 10,
 		BinlogPosition 	: This.position,
 		Pri				: This.GetPri(),
+		ColumnMapping   : This.GetTableColumnMapping(),
 	}
 }
 
@@ -645,6 +765,7 @@ func (This *Event) GetTestDeleteData() *pluginDriver.PluginDataType{
 		BinlogFileNum 	: 10,
 		BinlogPosition 	: This.position,
 		Pri				: This.GetPri(),
+		ColumnMapping   : This.GetTableColumnMapping(),
 	}
 }
 
@@ -658,6 +779,23 @@ func (This *Event) GetTestQueryData() *pluginDriver.PluginDataType{
 		EventType 		: "sql",
 		Rows            : Rows,
 		Query          	: "ALTER TABLE `"+This.Schema+"`.`"+This.Talbe+"` CHANGE COLUMN `testvarchar` `testvarchar` varchar(255) NOT NULL",
+		SchemaName     	: This.Schema,
+		TableName      	: This.Talbe,
+		BinlogFileNum 	: 10,
+		BinlogPosition 	: This.position,
+	}
+}
+
+func (This *Event) GetTestCommitData() *pluginDriver.PluginDataType{
+	var Rows []map[string]interface{}
+	Rows = make([]map[string]interface{},0)
+
+	This.position+=100
+	return &pluginDriver.PluginDataType{
+		Timestamp 		: uint32(time.Now().Unix()),
+		EventType 		: "commit",
+		Rows            : Rows,
+		Query          	: "COMMIT",
 		SchemaName     	: This.Schema,
 		TableName      	: This.Talbe,
 		BinlogFileNum 	: 10,

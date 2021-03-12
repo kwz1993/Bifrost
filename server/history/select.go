@@ -44,7 +44,7 @@ func (This *History) threadStart(i int,wg *sync.WaitGroup)  {
 		}()
 		db.Close()
 	}()
-	db.Exec("SET NAMES UTF8",[]driver.Value{})
+	db.Exec("SET NAMES utf8mb4",[]driver.Value{})
 	This.initMetaInfo(db)
 	if len(This.Fields) == 0{
 		This.ThreadPool[i].Error = fmt.Errorf("Fields empty,%s %s %s "+This.DbName,This.SchemaName,This.TableName," Current Select Table:",This.CurrentTableName)
@@ -125,17 +125,21 @@ func (This *History) threadStart(i int,wg *sync.WaitGroup)  {
 				case "set":
 					m[*v.COLUMN_NAME] = strings.Split(dest[i].(string), ",")
 					break
-				case "tinyint(1)":
-					switch fmt.Sprint(dest[i]) {
-					case "1":
-						m[*v.COLUMN_NAME] = true
-						break
-					case "0":
-						m[*v.COLUMN_NAME] = false
-						break
-					default:
+				case "tinyint":
+					if *v.COLUMN_TYPE == "tinyint(1)" {
+						switch fmt.Sprint(dest[i]) {
+						case "1":
+							m[*v.COLUMN_NAME] = true
+							break
+						case "0":
+							m[*v.COLUMN_NAME] = false
+							break
+						default:
+							m[*v.COLUMN_NAME] = dest[i]
+							break
+						}
+					}else{
 						m[*v.COLUMN_NAME] = dest[i]
-						break
 					}
 					break
 				case "json":
@@ -143,6 +147,28 @@ func (This *History) threadStart(i int,wg *sync.WaitGroup)  {
 					json.Unmarshal([]byte(dest[i].(string)),&d)
 					m[*v.COLUMN_NAME] = d
 					break
+				case "timestamp","datetime","time":
+					if v.Fsp == 0 {
+						m[*v.COLUMN_NAME] = dest[i]
+						break
+					}
+					val := dest[i].(string)
+					i := strings.Index(val,".")
+					if i < 0 {
+						m[*v.COLUMN_NAME] = val + "." + fmt.Sprintf("%0*d",v.Fsp,0)
+						break
+					}
+					n := len(val[i+1:])
+					if n == v.Fsp {
+						m[*v.COLUMN_NAME] = val
+						break
+					}
+					if n < v.Fsp {
+						m[*v.COLUMN_NAME] = val + fmt.Sprintf("%0*d",v.Fsp-n,0)
+					}else{
+						m[*v.COLUMN_NAME] = val[0:len(val) - n + v.Fsp]
+					}
+
 				default:
 					m[*v.COLUMN_NAME] = dest[i]
 					break
@@ -164,6 +190,7 @@ func (This *History) threadStart(i int,wg *sync.WaitGroup)  {
 				BinlogFileNum:	0,
 				BinlogPosition:	0,
 				Pri:			This.TablePriArr,
+				ColumnMapping:	This.ColumnMapping,
 			}
 
 			This.sendToServerResult(d)

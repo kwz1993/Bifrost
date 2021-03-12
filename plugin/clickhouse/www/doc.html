@@ -2,19 +2,17 @@
 
 <p>必须先选择 MySQL 的表后，再选择 ClickHouse 插件，再选择 ClickHouse 库表的时候，如果ClickHouse表字段和MySQL表字段一致的情况下会自动填充</p>
 <p>在没有选择 ClickHouse 数据表的时候,在同步过程中,将会根据数据类型自动创建ClickHouse表结构</p>
-<p>假如没有选择ClickHouse 数据库名,则会根据 MySQL 里的数据库名，自动创建</p>
+<p>假如没有选择ClickHouse 数据库名,则会根据 MySQL 里的数据库名，自动创建表( <strong style="color: #F00">只有有数据同步的时候,才会自动建表,没有数据同步之前，是不会自动建表的</strong> )</p>
 <p>假如选择了ClickHouse 数据库名，没有选择表名,则会自动创建根据字段类型自动创建表</p>
 
 <p><strong>自动创建表 规则</strong></p>
 
-
-<p>不允许源端数据 在Int,Bool,Timestamp ,DateTime,YEAR,BIT 等类型下存在 NULL 数据</p>
-<p><strong>如果源端数据为 NULL,自动创建 ClickHouse 表的时候，会被强制转换成 ClickHouse String 类型</strong></p>
-<p>会被强制转成 日志模式-UPDATE(LogUpdate) 同步模式</p>
+<p>会被强制转成 日志模式-追加(InsertAll) 同步模式</p>
+<p>自动创建表为  ReplacingMergeTree 引擎</p>
 <p>会自动新新增 bifrost_data_version,binlog_event_type 两个字段，对应 {$BifrostDataVersion},{$EventType} 标签</p>
-<p>源端 DDL之前，需要 先在 ClickHouse 里手工执行 相对应  DDL 语句，再重启 Bifrost，<strong style="color: #FF0000">不支持 DDL 自动更新</strong></p>
 <p>源端少了或者多了字段 ，并与 ClickHouse 表字段对应不上,ClickHouse 里的字段数据按自动填充默认值</p>
-<p>源端没有自键的表，会自动放弃该表的同步</p>
+<p>源端没有自增字段的表，会自动放弃该表的同步</p>
+<p>在设置 FilterQuery : False 的时候，支持 DDL 同步</p>
 
 <p>&nbsp;</p>
 <p>ClickHouse 对应用MySQL里的存储类型</p>
@@ -22,7 +20,7 @@
 <p>TINYINT ( Int8 | UInt8 ) , SMALLINT ( Int16 | UInt16 ) , MEDIUMINT ( Int32 | UInt32 ), INT ( Int32 | UInt32 ) , BIGINT ( Int64 | UInt64 )<p>
 <p>FLOAT ( Float64 ) , DOUBLE ( Float64 ) ,REAL ( Float64 )</p>
 <p>NUMERIC( Float64 )</p>
-<p>DECIMAL( String )</p>
+<p>DECIMAL( DECIMAL32 ==> Decimal32 , DECIMAL64 ==> Decimal64 , DECIMAL128 | DECIMAL256 ==> String )</p>
 <p>DATE ( Date )</p>
 <p>TIME ( String ) </p>
 <p>YEAR ( Int16 ) </p>
@@ -34,8 +32,14 @@
 <p>SET ( String )</p>
 <p>BIT ( Int64 )</p>
 <p>BOOL ( Int8 )</p>
+<p>JSON ( String )</p>
 <p>&nbsp;</p>
 
+<p><strong>LowerCaseTableNames 参数</strong></p>
+<p>0(不转) : 按源表大小写直接创建表</p>
+<p>1(小写) : 库表名及字段转成小写</p>
+<p>2(大写) : 库表名及字段转成大写</p>
+<p>&nbsp;</p>
 
 <p><strong>连接配置</strong></p>
 
@@ -96,11 +100,9 @@
 <p>&nbsp;</p>
 <p><strong>备注</strong></p>
 
-<p>必须只能选择一个字段为主键</p>
-<p>不支持批量设置表</p>
 <p>ClickHouse 18+ 版本</p>
 <p>假如源端是 decimal或者 varchar 等字符串类型, 目标端ClickHouse 是 Float32,Float64 或者 Decimal 类型,数据类型转换,可能存在精度精失的,如果要确保精度不丢失,ClickHouse 端使用 String 类型</p>
-<p>不支持 NULL 值字段，假如数据源为 Null ，将强制转换成 0, 0.00 或者 空字符串</p>
+<p>假如目标字段是Date,DateTime类型,数据源为空字符串将强制转成 Date,DateTime 默认值</p>
 <p>假如数据源是String类型，Ck表结构是 Int 或者 Float 类型，数据类型转换失败，并不报错，将强制转换成 0 或者 0.00</p>
 <p>BatchSize参数代表累积多少条数据刷一次数据到ClickHouse，假如一直没有数据从 MySQL 过来，则默认5秒超时，也会进行刷一次</p>
 <p>{$BifrostDataVersion} 标签的字段 必须为 Int64 或者 UInt64 数据类型</p>

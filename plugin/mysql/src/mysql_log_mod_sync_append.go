@@ -10,11 +10,11 @@ import (
 	"log"
 )
 
-func (This *Conn) CommitLogMod_Append(list []*pluginDriver.PluginDataType) (e error)  {
+func (This *Conn) CommitLogMod_Append(list []*pluginDriver.PluginDataType) (errData *pluginDriver.PluginDataType)  {
 	//将update, delete,insert 的数据全转成  insert 语句
 	var stmt dbDriver.Stmt
 	n  := len(list)
-	for i := 0; i < n; i++ {
+	LOOP : for i := 0; i < n; i++ {
 		data := list[i]
 		switch data.EventType {
 		case "update":
@@ -23,18 +23,30 @@ func (This *Conn) CommitLogMod_Append(list []*pluginDriver.PluginDataType) (e er
 				var toV dbDriver.Value
 				toV,This.err = This.dataTypeTransfer(This.getMySQLData(data,1,v.FromMysqlField), v.ToField,v.ToFieldType,v.ToFieldDefault)
 				if This.err != nil{
-					return This.err
+					if !This.p.BifrostMustBeSuccess {
+						This.err = nil
+						continue LOOP
+					}
+					if This.CheckDataSkip(data) {
+						This.err = nil
+						continue LOOP
+					}
+					return data
 				}
 				val = append(val, toV)
 			}
 			stmt = This.getStmt(INSERT)
 			if stmt == nil{
-				goto errLoop
+				return data
 			}
 			_,This.conn.err = stmt.Exec(val)
-			if This.conn.err != nil{
+			if This.conn.err != nil {
+				if This.CheckDataSkip(data) {
+					This.conn.err = nil
+					continue LOOP
+				}
 				log.Println("plugin mysql insert exec err:",This.conn.err," data:",val)
-				goto errLoop
+				return data
 			}
 			break
 		case "insert","delete":
@@ -43,24 +55,34 @@ func (This *Conn) CommitLogMod_Append(list []*pluginDriver.PluginDataType) (e er
 				var toV dbDriver.Value
 				toV, This.err = This.dataTypeTransfer(This.getMySQLData(data, 0, v.FromMysqlField), v.ToField, v.ToFieldType, v.ToFieldDefault)
 				if This.err != nil {
-					return This.err
+					if !This.p.BifrostMustBeSuccess {
+						This.err = nil
+						continue LOOP
+					}
+					if This.CheckDataSkip(data) {
+						This.err = nil
+						continue LOOP
+					}
+					return data
 				}
 				val = append(val, toV)
 			}
 			stmt = This.getStmt(INSERT)
 			if stmt == nil{
-				goto errLoop
+				return data
 			}
 			_,This.conn.err = stmt.Exec(val)
-			if This.conn.err != nil{
+			if This.conn.err != nil {
+				if This.CheckDataSkip(data) {
+					This.conn.err = nil
+					continue LOOP
+				}
 				log.Println("plugin mysql insert exec err:",This.conn.err," data:",val)
-				goto errLoop
+				return data
 			}
 			break
 		}
 
 	}
-
-errLoop:
-	return This.conn.err
+	return
 }
