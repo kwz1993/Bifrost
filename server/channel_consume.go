@@ -17,18 +17,15 @@ package server
 
 import (
 	"fmt"
-	"time"
-	"strings"
-)
-
-import (
-	pluginDriver "github.com/brokercap/Bifrost/plugin/driver"
 	"github.com/brokercap/Bifrost/Bristol/mysql"
-	"github.com/brokercap/Bifrost/server/count"
 	"github.com/brokercap/Bifrost/config"
-	"strconv"
-	"sync"
+	pluginDriver "github.com/brokercap/Bifrost/plugin/driver"
+	"github.com/brokercap/Bifrost/server/count"
 	"log"
+	"strconv"
+	"strings"
+	"sync"
+	"time"
 )
 
 func evenTypeName(e mysql.EventType) string {
@@ -41,61 +38,77 @@ func evenTypeName(e mysql.EventType) string {
 		return "delete"
 	case mysql.QUERY_EVENT:
 		return "sql"
+	case mysql.XID_EVENT:
+		return "commit"
+	default:
+		break
 	}
 	return fmt.Sprintf("%d", e)
 }
 
 type ToServerChan struct {
-	To 		chan *pluginDriver.PluginDataType
+	To chan *pluginDriver.PluginDataType
 }
 
 type consume_channel_obj struct {
 	sync.RWMutex
-	db      *db
-	c       *Channel
-	connMap map[string]pluginDriver.ConnFun
+	db         *db
+	c          *Channel
+	SchemaName string
+	TableName  string
 }
 
 func NewConsumeChannel(c *Channel) *consume_channel_obj {
 	return &consume_channel_obj{
-		db:      c.db,
-		c:       c,
-		connMap: make(map[string]pluginDriver.ConnFun, 0),
+		db: c.db,
+		c:  c,
 	}
 }
 
 func (This *consume_channel_obj) checkChannleStatus() {
-	if This.c.Status == "close"{
+	if This.c.Status == CLOSED {
 		panic("channel closed")
 	}
 }
 
-func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,pluginData *pluginDriver.PluginDataType){
+func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer, pluginData *pluginDriver.PluginDataType) {
 	ToServerInfo.Lock()
 	status := ToServerInfo.Status
 	FileQueueStatus := ToServerInfo.FileQueueStatus
-	if status == "deling" || status == "deled"{
+	if status == DELING || status == DELED {
 		ToServerInfo.Unlock()
 		return
 	}
-	if status == ""{
-		ToServerInfo.Status = "running"
+	if status == DEFAULT {
+		ToServerInfo.Status = RUNNING
 	}
 	//修改toserver 对应最后接收的 位点信息
-	ToServerInfo.LastBinlogFileNum,ToServerInfo.LastBinlogPosition = pluginData.BinlogFileNum,pluginData.BinlogPosition
-	if ToServerInfo.ToServerChan == nil{
+	var lastQueueBinlog = &PositionStruct{
+		BinlogFileNum:  pluginData.BinlogFileNum,
+		BinlogPosition: pluginData.BinlogPosition,
+		GTID:           pluginData.Gtid,
+		Timestamp:      pluginData.Timestamp,
+		EventID:        pluginData.EventID,
+	}
+	ToServerInfo.LastQueueBinlog = lastQueueBinlog
+
+	// 支持到 1.8.x
+	ToServerInfo.LastBinlogFileNum, ToServerInfo.LastBinlogPosition = pluginData.BinlogFileNum, pluginData.BinlogPosition
+
+	//ToServerInfo.LastBinlogFileNum,ToServerInfo.LastBinlogPosition,ToServerInfo.LastBinlogGtid,ToServerInfo.LastBinlogEventID = pluginData.BinlogFileNum,pluginData.BinlogPosition,pluginData.Gtid,pluginData.EventID
+	if ToServerInfo.ToServerChan == nil {
 		ToServerInfo.ToServerChan = &ToServerChan{
-			To:     make(chan *pluginDriver.PluginDataType, config.ToServerQueueSize),
+			To: make(chan *pluginDriver.PluginDataType, config.ToServerQueueSize),
 		}
-		go ToServerInfo.consume_to_server(This.db,pluginData.SchemaName,pluginData.TableName)
+		go ToServerInfo.consume_to_server(This.db, pluginData.SchemaName, pluginData.TableName)
 	}
 	ToServerInfo.Unlock()
-	if ToServerInfo.LastBinlogKey == nil{
-		ToServerInfo.LastBinlogKey = getToServerLastBinlogkey(This.db,ToServerInfo)
+	if ToServerInfo.LastBinlogKey == nil {
+		ToServerInfo.LastBinlogKey = getToServerLastBinlogkey(This.db, ToServerInfo)
 	}
-	saveBinlogPositionByCache(ToServerInfo.LastBinlogKey,pluginData.BinlogFileNum,pluginData.BinlogPosition)
+	saveBinlogPositionByCache(ToServerInfo.LastBinlogKey, lastQueueBinlog)
 	if FileQueueStatus {
-		ToServerInfo.InitFileQueue(This.db.Name,pluginData.SchemaName,pluginData.TableName)
+		ToServerInfo.InitFileQueue(This.db.Name, pluginData.SchemaName, pluginData.TableName)
 		ToServerInfo.AppendToFileQueue(pluginData)
 		return
 	}
@@ -110,15 +123,15 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 			ToServerInfo.QueueMsgCount++
 			if int(ToServerInfo.QueueMsgCount) >= config.ToServerQueueSize {
 				ToServerInfo.FileQueueUsableCount++
-				if ToServerInfo.FileQueueUsableCount == 1{
+				if ToServerInfo.FileQueueUsableCount == 1 {
 					ToServerInfo.FileQueueUsableCountStartTime = time.Now().UnixNano() / 1e6
-				}else{
+				} else {
 					// 假如在 FileQueueUsableCountTimeDiff 时间 内 内存队列 被挤满的次数大于 配置的 FileQueueUsableCount 大小，则认为 需要启动文件队列
 					// 否则重新开始计算
-					if time.Now().UnixNano() / 1e6 - ToServerInfo.FileQueueUsableCountStartTime > config.FileQueueUsableCountTimeDiff {
+					if time.Now().UnixNano()/1e6-ToServerInfo.FileQueueUsableCountStartTime > config.FileQueueUsableCountTimeDiff {
 						if ToServerInfo.FileQueueUsableCount > config.FileQueueUsableCount {
 							ToServerInfo.FileQueueStatus = true
-						}else{
+						} else {
 							ToServerInfo.FileQueueUsableCount = 0
 						}
 					}
@@ -129,13 +142,13 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 		case <-timer.C:
 			ToServerInfo.Lock()
 			defer ToServerInfo.Unlock()
-			ToServerInfo.InitFileQueue(This.db.Name, pluginData.SchemaName, pluginData.TableName)
+			ToServerInfo.InitFileQueue(This.db.Name, This.SchemaName, This.TableName)
 			ToServerInfo.AppendToFileQueue(pluginData)
 			ToServerInfo.FileQueueStatus = true
 			//log.Println("start FileQueueStatus = true;",*pluginData)
 			break
 		}
-	}else{
+	} else {
 		ToServerInfo.ToServerChan.To <- pluginData
 		ToServerInfo.Lock()
 		ToServerInfo.QueueMsgCount++
@@ -144,41 +157,34 @@ func (This *consume_channel_obj) sendToServerResult(ToServerInfo *ToServer,plugi
 
 }
 
-func (This *consume_channel_obj) transferToPluginData(data *mysql.EventReslut) pluginDriver.PluginDataType{
+func (This *consume_channel_obj) transferToPluginData(data *mysql.EventReslut) (pluginData *pluginDriver.PluginDataType) {
 	i := strings.IndexAny(data.BinlogFileName, ".")
 	intString := data.BinlogFileName[i+1:]
-	BinlogFileNum,_:=strconv.Atoi(intString)
-	return pluginDriver.PluginDataType{
-		Timestamp:data.Header.Timestamp,
-		EventType:evenTypeName(data.Header.EventType),
-		SchemaName:data.SchemaName,
-		TableName:data.TableName,
-		Rows:data.Rows,
-		BinlogFileNum:BinlogFileNum,
-		BinlogPosition:data.Header.LogPos,
-		Query:data.Query,
-		Pri: data.Pri,
+	BinlogFileNum, _ := strconv.Atoi(intString)
+	pluginData = &pluginDriver.PluginDataType{
+		Timestamp:      data.Header.Timestamp,
+		EventType:      evenTypeName(data.Header.EventType),
+		SchemaName:     data.SchemaName,
+		TableName:      data.TableName,
+		Rows:           data.Rows,
+		BinlogFileNum:  BinlogFileNum,
+		BinlogPosition: data.Header.LogPos,
+		Query:          data.Query,
+		Gtid:           data.Gtid,
+		Pri:            data.Pri,
+		ColumnMapping:  data.ColumnMapping,
+		EventID:        data.EventID,
 	}
+	return
 }
 
-/*
-深度拷贝，性能不是很好，现在放弃了
-func(This *consume_channel_obj) deepCopy(dst, src interface{}) error {
-	var buf bytes.Buffer
-	if err := gob.NewEncoder(&buf).Encode(src); err != nil {
-		return err
-	}
-	return gob.NewDecoder(bytes.NewBuffer(buf.Bytes())).Decode(dst)
-}
-*/
-
-func (This *consume_channel_obj) consume_channel() {
+func (This *consume_channel_obj) consumeChannel() {
 	c := This.c
-	var data mysql.EventReslut
-	log.Println("channel",c.Name," consume_channel start")
+	var pluginData *pluginDriver.PluginDataType
+	log.Println("channel", c.Name, " consume_channel start")
 	timer := time.NewTimer(5 * time.Second)
 	defer func() {
-		log.Println("channel",c.Name," consume_channel over; CurrentThreadNum:",c.CurrentThreadNum)
+		log.Println("channel", c.Name, " consume_channel over; CurrentThreadNum:", c.CurrentThreadNum)
 		timer.Stop()
 	}()
 	var key string
@@ -187,60 +193,68 @@ func (This *consume_channel_obj) consume_channel() {
 	var EventSize int64 = 0
 	for {
 		select {
-		case data = <-This.c.chanName:
-			if This.db.killStatus == 1{
+		case pluginData = <-This.c.chanName:
+			if This.db.killStatus == 1 {
 				return
 			}
 			This.checkChannleStatus()
 
-			switch data.Header.EventType {
-			case mysql.UPDATE_ROWS_EVENTv2, mysql.UPDATE_ROWS_EVENTv1, mysql.UPDATE_ROWS_EVENTv0:
-				countNum = int64(len(data.Rows)/2)
+			switch pluginData.EventType {
+			case "update":
+				countNum = int64(len(pluginData.Rows) / 2)
 				break
-			case mysql.QUERY_EVENT:
+			case "sql", "commit":
 				countNum = 0
 				break
 			default:
-				countNum = int64(len(data.Rows))
+				countNum = int64(len(pluginData.Rows))
 				break
 			}
-			if countNum == 0{
-				break
-			}
-			EventSize = int64(data.Header.EventSize)
+			EventSize = int64(pluginData.EventSize)
 
-			key = GetSchemaAndTableJoin(data.SchemaName,data.TableName)
-			AllTableKey = GetSchemaAndTableJoin(data.SchemaName,"*")
-			pluginData := This.transferToPluginData(&data)
-			This.sendToServerList(key,&pluginData,countNum,EventSize)
-			This.sendToServerList(AllTableKey,&pluginData,countNum,EventSize)
-			This.sendToServerList(AllSchemaAndTablekey,&pluginData,countNum,EventSize)
+			key = GetSchemaAndTableJoin(pluginData.AliasSchemaName, pluginData.AliasTableName)
+			AllTableKey = GetSchemaAndTableJoin(pluginData.AliasSchemaName, "*")
+			//pluginData := This.transferToPluginData(&data)
+			This.SchemaName, This.TableName = pluginData.AliasSchemaName, pluginData.AliasTableName
+			This.sendToServerList(key, pluginData, countNum, EventSize)
+			This.SchemaName, This.TableName = pluginData.AliasSchemaName, "*"
+			This.sendToServerList(AllTableKey, pluginData, countNum, EventSize)
+			This.SchemaName, This.TableName = "*", "*"
+			This.sendToServerList(AllSchemaAndTablekey, pluginData, countNum, EventSize)
 
-			if This.db.killStatus == 1{
+			if This.db.killStatus == 1 {
 				return
 			}
 
-			timer.Reset(5  * time.Second)
+			timer.Reset(5 * time.Second)
 		case <-timer.C:
 			timer.Reset(5 * time.Second)
 		}
 		for {
-			if c.Status == "stop" {
+			if c.Status == STOPPED {
 				time.Sleep(1 * time.Second)
 			} else {
 				break
 			}
 		}
-		if c.CurrentThreadNum > c.MaxThreadNum || c.Status == "close" {
+		if c.CurrentThreadNum > c.MaxThreadNum || c.Status == CLOSED {
 			c.CurrentThreadNum--
 			break
 		}
 	}
 }
 
-func (This *consume_channel_obj) checkIgnoreTable(t *Table,TableName string) bool{
+func (This *consume_channel_obj) checkIgnoreTable(t *Table, TableName string) bool {
 	This.db.RLock()
-	if _,ok := t.ignoreTableMap[TableName];ok {
+	if len(t.doTableMap) > 0 {
+		if _, ok := t.doTableMap[TableName]; ok {
+			This.db.RUnlock()
+			return false
+		}
+		This.db.RUnlock()
+		return true
+	}
+	if _, ok := t.ignoreTableMap[TableName]; ok {
 		This.db.RUnlock()
 		return true
 	}
@@ -248,14 +262,14 @@ func (This *consume_channel_obj) checkIgnoreTable(t *Table,TableName string) boo
 	return false
 }
 
-func (This *consume_channel_obj) sendToServerList(key string,pluginData *pluginDriver.PluginDataType,countNum int64,EventSize int64) {
+func (This *consume_channel_obj) sendToServerList(key string, pluginData *pluginDriver.PluginDataType, countNum int64, EventSize int64) {
 	t := This.db.GetTableByKey(key)
 	if t == nil {
 		return
 	}
-	if This.checkIgnoreTable(t,pluginData.TableName) == false {
+	if This.checkIgnoreTable(t, pluginData.TableName) == false {
 		if len(t.ToServerList) > 0 {
-			This.sendToServerList0(t.ToServerList,pluginData)
+			This.sendToServerList0(t.ToServerList, pluginData)
 			This.c.countChan <- &count.FlowCount{
 				Count:    countNum,
 				TableId:  t.key,
@@ -263,30 +277,41 @@ func (This *consume_channel_obj) sendToServerList(key string,pluginData *pluginD
 			}
 		}
 	}
-	for _,t0 := range t.likeTableList{
-		if This.checkIgnoreTable(t0,pluginData.TableName) == true {
+	for _, t0 := range t.likeTableList {
+		if This.checkIgnoreTable(t0, pluginData.TableName) == true {
 			continue
 		}
-		This.sendToServerList0(t0.ToServerList,pluginData)
+		This.sendToServerList0(t0.ToServerList, pluginData)
 		This.c.countChan <- &count.FlowCount{
-			Count:countNum,
-			TableId:t0.key,
-			ByteSize:EventSize * int64(len(t0.ToServerList)),
+			Count:    countNum,
+			TableId:  t0.key,
+			ByteSize: EventSize * int64(len(t0.ToServerList)),
 		}
 	}
 }
 
-func (This *consume_channel_obj) sendToServerList0(toServerList []*ToServer,pluginData *pluginDriver.PluginDataType)  {
+func (This *consume_channel_obj) sendToServerList0(toServerList []*ToServer, pluginData *pluginDriver.PluginDataType) {
 	for _, toServerInfo := range toServerList {
 		if toServerInfo.FilterQuery && pluginData.EventType == "sql" {
-			continue
+			if pluginData.Query != "COMMIT" {
+				continue
+			}
 		}
-		if pluginData.BinlogFileNum < toServerInfo.BinlogFileNum {
-			continue
+		if pluginData.EventID < toServerInfo.LastSuccessBinlog.EventID {
+			// 这里多加一层 时间差过滤, 防止在数据的时候，EventID 计算错误造成可能丢失的bug
+			// 这里直接 continue 过滤只是尽可能防止重复同步而已
+			if pluginData.Timestamp < toServerInfo.LastSuccessBinlog.Timestamp {
+				continue
+			}
 		}
-		if pluginData.BinlogFileNum == toServerInfo.BinlogFileNum && toServerInfo.BinlogPosition >= pluginData.BinlogPosition {
-			continue
-		}
-		This.sendToServerResult(toServerInfo,pluginData)
+		/*
+			if pluginData.BinlogFileNum < toServerInfo.BinlogFileNum {
+				continue
+			}
+			if pluginData.Timestamp < toServerInfo.LastSuccessBinlog.Timestamp || (pluginData.BinlogFileNum == toServerInfo.LastSuccessBinlog.BinlogFileNum && toServerInfo.LastSuccessBinlog.BinlogPosition >= pluginData.BinlogPosition) {
+				continue
+			}
+		*/
+		This.sendToServerResult(toServerInfo, pluginData)
 	}
 }

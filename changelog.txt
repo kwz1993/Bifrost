@@ -1,3 +1,351 @@
+v2.3.12-beta   2025-03-18
+=========================
+1. 修复input mysql 查询数据库表等功能存在句柄泄漏的bug，及代码妆容优化
+2. 修复MustBeSuccess==False的情况下，目标端mysql处理出错的时候，并没有被跳过处理bug及代码优化
+3. mysql 目标端配置同步的界面去除本已取消的功能连接
+
+v2.3.11-beta   2025-03-07
+1. plugin mysql 修复获取表元数据的时候连接异常导致的连接错误没被识别的bug
+2. kafka plugin 消息统计不再使用计数器，而是直接使用切片的长度
+3. 修复开启了FilterUpdate，但是源表中存在复杂的json类型字段匹配错误，导致的异常退出bug
+
+v2.3.10-beta   2025-01-19
+1. fix mongo batch _id contains ' " ' bug
+   修改mongo源全量同步到目标库的时候，_id 字段包含双引号的bug
+2. Update the logic for determining whether it is Starrocks, supporting specifying it as Starrocks in the URI and forcing it to be set as Starrocks
+   支持uri连配配置中设置starrocks字样，会被识别为starrocks数据库
+
+v2.3.8-beta   2024-11-05
+1. fix mysql select tinyint(1) , value > 1 , transfer to bool ,result false bug
+
+v2.3.7-beta   2024-10-16
+1. output kakfa tableMap add binlog_timestamp field
+2. CHARACTER_OCTET_LENGTH add support for int64 and int32 in mysql parser
+
+v2.3.6-beta   2024-04-21
+1. input varchar(255) to output starrocks varchar(765)
+
+v2.3.5-beta   2024-04-05
+1. fixed output starrocks varchar(255) tansfer error bug https://github.com/brokercap/Bifrost/issues/266
+2. 修复mongo数据源全量功能无效的bug https://github.com/brokercap/Bifrost/issues/272
+
+v2.3.4-beta   2023-12-31
+1. 修复MySQL源,指定同步表配置后,但可能没生效的BUG BUG复现过程: a. 配置了一个T1表同步 b. 重启进程,并且T1表数据不再做任何更新 c. 配置T2表同步 d. 更新T1表的数据
+2. 修复mysql 带有触发器的时候binlog解析失败的bug https://github.com/brokercap/Bifrost/issues/263
+3. 修复plugin clickhouse decimal 精度丢失的bug https://github.com/brokercap/Bifrost/issues/204
+
+v2.2.3-beta   2023-12-31
+1. 修复MySQL源,指定同步表配置后,但可能没生效的BUG BUG复现过程: a. 配置了一个T1表同步 b. 重启进程,并且T1表数据不再做任何更新 c. 配置T2表同步 d. 更新T1表的数据
+2. 修复mysql 带有触发器的时候binlog解析失败的bug https://github.com/brokercap/Bifrost/issues/263
+3. 修复plugin clickhouse decimal 精度丢失的bug https://github.com/brokercap/Bifrost/issues/204
+4. 修复2.2.2 mysql,clickhouse之外的其他插件input没有配置tag标签导致数据转换失败的bug
+
+v2.3.3-beta   2023-11-05
+1. 修复2.2.2 ,2.3.2 mysql,clickhouse之外的其他插件input没有配置tag标签导致数据转换失败的bug
+
+v2.3.2-beta   2023-10-22
+1. 包含2.2.2版本内容
+2. 优化 output mysql starrocks/doris 自动建表字段类型映射关系,根据实际情况选择最接近源端类型的数据类型
+3. output mysql 对starrocks/doris的支持 自动建表时 类型转换的优化 非追加模式下,无主键的表,目标库中表不存在的情况下,会自动弃丢,不会自动建表及同步	ade2ac4	jc3wish <>	2023年10月21日 16:32
+4. 修复其他部分已知bug以及doc更新
+
+v2.2.2-beta   2023-10-22
+1. 在数据转换的过程中,比如字段在源端的字段列表中不存在 ,则直接返回nil
+   案例: data 中有字段及值 x1:"v1",x2:"v2",x3:"v3"
+   情况1:  val = "x4" , 返回 nil
+   情况2:  val = "x4{BifrostNull}" ,返回 x4
+   情况3:  val = "x1" , 返回 x1对应的的值v1
+   情况4:  val = {BifrostNull} , 返回 nil
+   如果在此版本之前在字段绑定中使用了 源端不存在的字段名,需要进行修改为 情况2 那种情况 ,才会返回 x4那样的值,否则为 nil,请视使用情况是否需要修改
+2. 在kafka等自行控制位点的数据源,在一个数据表开始同步后,就再也没有数据同步后,导致位点计算错误的BUG
+   https://github.com/brokercap/Bifrost/issues/257
+3. 修复input kafka 在同步过程中去获取最新位点,导致死锁的bug
+   https://github.com/brokercap/Bifrost/issues/256
+4. 修复数据源指定带点数据源名称 搜索失败的bug
+5. 当添加AllTabls 的时候 ,支持只指定同步某些表
+   https://github.com/brokercap/Bifrost/issues/253
+6. 修复input mock 在随机生成no_pks无主键表,生成的数据,还存在主键的bug
+7. mock input更新,支持设置开启长字符串生成, 支持设置是否生成的数据,均为同一个事件内容,用于提升生成数据性能
+8. web体验优化 全量任务,表同步列表可支持跳转到表同步配置详情页,并自动选中库表
+
+v2.3.1-beta   2023-10-15
+1. 包含2.2.1版本内容
+2. 修复 output starrocks 在普通模式,指定了库名的情况下,提示未找到原库表名的错误
+
+v2.2.1-beta   2023-10-15
+1. Linux 作为服务器的情况下，通过读取 /proc/[pid]/status 内核文件下的 VmRSS 作为内存使用量
+   其他系统 ，将继续使用Go提供的runtime.MemStats里的统计数据
+2. 修复input mock 全量完后，内存并没释放的BUG
+3. 修复 input mock 在batch模式下，提前退出batch的逻辑bugoutput mysql starrocks 在写入成功的情况下,设置当前连接错误为nil,防止上一次成功,这一次成功,需要清空错误信息	836676b	jc3wish <>	2023年10月21日 22:19
+
+4. 修复input mock batch 结束后只是显示stopped,但没closed的bug
+5. 界面操作优化更新
+   数据源界面新增简易搜索功能
+   数据源及目标库ConnUri输入框入框改为texterea,范围更大
+6. 修复input mongo 在值为nil的情况下,ColumnMapping的时候panic的bug
+
+v2.3.0-beta   2023-10-06
+1. 支持MySQL连接协议连接Starrocks,进行数据同步到,支持自动建表,日志追加模式,按月自动建分区
+   https://github.com/brokercap/Bifrost/issues/254
+2. 当添加AllTabls 的时候 ,支持只指定同步某些表
+   https://github.com/brokercap/Bifrost/issues/253
+
+v2.2.0-beta   2023-10-06
+1. input kafka 在多parrtition的情况下支持设置处理数据转换的协程数量 来提升性能,一个partition的数据,只能被一个协程处理,在单partition的情况下,设置多个无效,默认为 单协程
+2. input mongo 支持设置 全量,增量,以及先全量再增量的方式数据同步
+3. 修复批量添加表数据同步失败的BUG
+   https://github.com/brokercap/Bifrost/issues/249
+4. 修复修改数据源,但是数据源连接案例及描述等信息没有变更的bug
+   https://github.com/brokercap/Bifrost/issues/248
+5. 添加全量任务后,跳转到全量任务列表,采用新窗口跳转
+   https://github.com/brokercap/Bifrost/issues/250
+6. 支持 input mock ,在开发output的时候 可以更方便的进行测试
+7. input 插件开发 支持获取需要同步的库表列表
+8. Bristol mysql驱动 支持 conn.Exec conn.Query 带参数请求访问接口
+
+v2.1.1-beta   2023-09-17
+1. 修复同步配置字段映射显示undefined的bug
+   https://github.com/brokercap/Bifrost/issues/237
+2. output ClickHouse支持选择配置自动创建MergeTree引擎表
+   https://github.com/brokercap/Bifrost/issues/244
+3. 修复mysql源连接断开没被发现的bug
+   https://github.com/brokercap/Bifrost/issues/188
+
+v2.1.0-beta   2023-09-03
+1. 支持input kafka 自定义配置数据格式转换成Bifrost格式
+2. output clickhouse 支持json.Number数据类型转换成String
+3. 修复mongo input 在update事件中,但更新的数据字典实际为nil导致异常的bug
+
+v2.0.6-beta   2023-06-18
+1. 修复目标库clickhouse显示同步成功，但实际失败的bug
+   https://github.com/brokercap/Bifrost/issues/233
+2. 修复mysql数据源close操作的时候，持续closing状态
+   https://github.com/brokercap/Bifrost/issues/234
+
+v2.0.5-beta   2023-06-10
+1. 新增mongo input源，当前只支持oplog增量解析同步
+
+v2.0.4-beta   2023-06-09
+1. 目标端kafka连接支持tls,用户名密码连接配置
+2. 增加飞书报警类型
+
+v2.0.3-beta   2022-10-30
+1. 支持整个表json字符串(kafka input) 进行同步
+
+v2.0.2-beta   2022-10-27
+1. 修复mysql input 未设置GTID导致数据源启动不了的BUG
+2. 修复mysql input 数据源开启了gtid功能，但实际没采用gtid方式同步，重启后又自动gtid模式同步的bug
+3. kafka input 支持sasl sha256 sha512 帐号密码连接
+
+v2.0.1-beta   2022-10-22
+1. kafka源支持debezium mysql 数据结构
+2. kafka源支持查看最新位点
+3. 修复其他Kafka源的BUG
+4. 修复库名带 . 不可用的BUG
+5. 修复其他部分BUG
+
+v2.0.0-beta   2022-10-16
+1. 支持多源架构
+2. 新增kafka增量源，支持 kafka中 string,canal json,bifrost json 格式进行同步
+3. kafka目标端支持以canal格式写入
+
+v1.8.8-release   2022-10-16
+1. 修复通过X-Real-IP等伪造IP进行无限爆破密码漏洞
+2. 修复mariaDB环境下位点可能不会被保证的BUG
+
+v1.8.7-release   2022-09-18
+1. 修复basicAuth权限验证对 monitor 用户组不进行权限校验的安全BUG(issue https://github.com/brokercap/Bifrost/issues/200)
+2. 修复monitor用户组无权限但不提示的BUG
+
+v1.8.6-release   2022-09-10
+1. 修复docker环境重启失败的BUG(issue https://github.com/brokercap/Bifrost/issues/198)
+2. 修复DateTime64(N) 时区问题BUG(issue https://github.com/brokercap/Bifrost/issues/191)
+3. ck plugin 单测整理
+
+v1.8.5-release   2022-09-04
+1. 新增CK插件库表前缀配置功能
+2. 修复CK插件1.7.4升级到1.8版本不兼容的BUG(issue https://github.com/brokercap/Bifrost/issues/196)
+3，修复HTTP插件在BasicAuth认证推送失败的BUG(issue https://github.com/brokercap/Bifrost/issues/195)
+4. 修复ElasticSearch插件在ElasitcSearch 8.x 版本不支持type参数的BUG(issue https://github.com/brokercap/Bifrost/issues/177)
+5. 修复其他已知部分BUG
+
+v1.8.4-release   2022-08-28
+1. 修复分区表解析出错的bug
+2. 修复ClickHouse插件同步 新增索引等DDL语句同步导致的bug
+3，修复可能造成超时并不同步数据的bug(issue https://github.com/brokercap/Bifrost/issues/179)
+4. 修复其他已知bug
+
+v1.8.3-release   2022-04-16
+1. FIX CK插件同步配置选择了指定目标表的时候指定字段映射关系不显示的BUG(issue https://github.com/brokercap/Bifrost/issues/180)
+
+v1.8.2-release   2022-03-26
+1. 修复ck插件集群模式同步不了数据的bug
+2. Binlog解析测试新增所有字段类型的null值测试
+3. 生成测试数据新增所有字段类型的null值字段
+
+v1.8.1-release   2022-02-27
+===========================
+1. ClickHouse DDL 支持完善，包含：增加字段，删除字段，修改字段类型，修改字段名称，修改表名称等
+2. 支持 ClickHouse ReplicatedReplacingMergeTree 分布式集群模式写入（由于涉及到final 效率问题，推荐ck版本为 v20.5.2.7-stable以上（包含））
+3. 新增 ElasticSearch 插件支持
+4. 修复数据包超过16MB时无法完全解析的BUG
+5. 优化某个表没有数据写入，其他表有数据写入的情况下，造成没有数据更变的表，并不会5秒进行超时同步的BUG
+6. 优化Binlog连接断开重连的功能
+
+v1.8.0-beta.01   2021-03-14
+===========================
+1. mysql caching_sha2_password supported
+
+v1.7.4-release   2021-03-14
+===========================
+1. fix plugin redis list sync empty bug
+2. fix pprof.go,update DBController to PprofController
+3. mysql field data  check update
+4. redis-client lib version update
+5. fix eventID calc error, lose data bug
+
+v1.7.3-release   2021-02-28
+===========================
+1. fix gtid update panic bug
+2. connection use utf8mb4
+3. plugin mysql cancel bool type
+4. fix plugin field nullable contrast YES
+5. fix plugin clickhouse conn error
+
+
+v1.7.2-release   2021-02-21
+===========================
+1. mariadb gtid supported
+2. fix plugin mysql nullable ,bug has default sync error bug
+3. testing binlog parser and select data is all right for mysql,mariadb,percona
+4. golang 1.16 ,Darwin arm64 supported
+
+v1.7.1-release   2021-02-09
+===========================
+1. fix binlog parser ddl(rename,drop) error
+2. fix binlog parser error by  "/*notes*/" filter
+3. plugin ck ddl update
+4. plugin mysql ddl update ,supported tidb rename multi-table
+5. mysql multi-gtid support
+6. fix percona 8.0 char parser error
+7. recovery binlog position calc update
+8. beore and after ddl, callback a dummy begin and commit event
+9. fix windows path error
+10. db list show eventID
+11. doc update
+12. fix other bugs
+
+v1.7.0-rc.01   2021-01-24
+===========================
+1. gtid supported
+2. plugin ck ddl supported(add,change column)
+3. plugin ck decimal64 tansfer decimal64, decimal128 and decimal256 tansfer to String
+4. plugin mysql filter data auto_increment be first
+5. fix other bugs
+
+v1.6.6-release   2021-01-17
+===========================
+1. fix rename table binlog parser error bug
+2. fix http basic auth bug
+
+v1.6.5-release   2021-01-10
+===========================
+1. fixed mysql desc SchemaName error bug
+2. fixed mysql ddl tansfer error bug
+3. fixed history task may recovry bug
+4. fixed history flow href error
+5. mysql plugin error update
+6. fixed may  time out contine bug
+7. other bug fixed
+
+v1.6.4-release   2021-01-03
+===========================
+1. 修复一个全量任务设置多线程同步造成的致命bug
+2. fixed TRANSACTION_CONTEXT_EVENT,VIEW_CHANGE_EVENT,XA_PREPARE_LOG_EVENT filter error
+3. add mysql version show
+4. add http api doc
+5. web view update and other bugs fixed
+
+v1.6.3-release   2020-12-27
+===========================
+1. 修复plugin mysql 主键非自增的时候丢数据的bug
+2. 修复plugin ddl 同步造成的阻塞的bug
+3. 修复plugin 同步出错不报错而造成丢数据的bug
+4. 修复dateime(6)类型默认值为0000-00-00 00:00:00.000000解析出错的bug
+5. 流量统计优化减少对map的操作，界面流量显示优化
+6. 用户登入验证Host支持多个Host配置，用逗号隔开
+7. plugin clickhouse 优化对源是float类型的数据转换
+8. 其他已知的部分bug修复及界面优化
+
+v1.6.2-release   2020-12-20
+===========================
+1. 登入用户新增 Host 验证功能
+2. 新增登入日志及自动禁IP功能
+
+v1.6.1-release   2020-12-16
+===========================
+1. 新增对mysql time(1-6),datetime(1-6),timestamp(1-6) 的支持( binlog 解析由 @zhwei820 提交合并 )
+2. 修复一个可以可能 造成丢数据的bug
+3. mysql 插件支持不同步数据的功能，只支持 SQL DDL
+4. 修复 binlog commit事件被过滤的bug
+
+v1.6.0-release   2020-11-29
+===========================
+1. http 框架代码结构变更,及可提供更为方便第三方自行开发管理界面系统
+2. 插件开发 接口变更, 让开发者更方便介入插件开发
+3. 采用 commit 事件作为位点管理
+4. mysql plugin 支持自动表识别及 DDL 同步功能
+5. clickhouse plugin 支持自动大小写转换等功能
+6. plugin mongodb 支持自动识别源表主键
+7. plugin redis,memcache 支持批量配置
+8. 在线修改目标库地址,在线生效,不用再重启进程
+9. 同步采用错过位点的方式错过数据，mysql,clickhouse,kafka等批量同步的插件也支持
+10. 目标库支持配置保持最小连接数,可用于连接lvs,ha等负载造成的集群长连接，分担压力
+11. 其他已知 bug 修复及界面等优化
+
+v1.6.0-beta.04   2020-11-22
+===========================
+plugin mysql:
+1. 新增自动匹配表结构配置支持DDL 同步功能
+2. 在没有指定字段映射的字段,则不会同步数据,目标表需要自行设置默认值
+
+plugin clickhouse:
+1. 自动建表的时候，新增将表名,字段转成大写或者小写的配置
+
+plugin kafka:
+1. 修复同步到kafka在未达到batchsize不同步的bug
+
+plugin mongodb:
+1. plugin mongodb 支持自动识别源表主键
+
+Other:
+1. 对sql语句中指定schema.table 进行执行,Binlog 过滤库表以sql 中的库表为准
+2. 修复全量配置between查询的时候，及全量多个表中，其中有一个表没有主键，报找不到ID等字段 的bug
+3. 修复流量显示选择统计时间无效的bug
+4. plugin redis,memcache 支持批量配置
+
+v1.6.0-beta.02   2020-11-12
+===========================
+1. 修复在提交mysql作为目标库的时候,部分mysql版本报错的bug
+2. mysql 插件错过位点逻辑变更 为更小位点则直接错过
+3. 表同步列表新增Skip 错误位点功能
+4. 自动去除输入框前后空格
+5. ck 提交错误和数据转换错误分开逻辑判断，减 少重连的概率
+6. 修复修改监听端口无效的bug
+7. 修复点击报警删除按钮提示json解析错误bug
+8. 表同步界面新增显示插件配置参数
+9. 修复非row事件的时候，标签替换失败的bug
+
+v1.6.0-beta.01   2020-10-31
+===========================
+1. http 框架封装修改,方便开发人员更容易介入开发
+2. 同步插件接口变更,并且采用commit事件位点进行保存,解决在同步大事务数据的时候，不用再自动寻找可解析的位点
+3. clickhouse插件，bifrost_data_version为0的bug修复
+4. 在线修改目标库地址,在线生效,不用再重启进程
+5. 目标库支持配置保持最小连接数,可用于连接lvs,ha等负载造成的集群长连接，分担压力
+6. 其他部分已知bug修复
+7. 部分界面显示优化
+
 v1.5.2-release   2020-10-16
 ===========================
 1. 修复enum可能解析错误的bug

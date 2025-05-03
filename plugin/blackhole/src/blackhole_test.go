@@ -1,57 +1,67 @@
-package src_test
+//go:build integration
+// +build integration
+
+package src
 
 import (
-	"testing"
+	"github.com/brokercap/Bifrost/sdk/pluginTestData"
 	"log"
-	"github.com/brokercap/Bifrost/test/pluginTest"
-	MyPlugin "github.com/brokercap/Bifrost/plugin/http/src"
+	"testing"
 )
 
 var url string = "http://127.0.0.1:3332/bifrost_http_api_test"
+var event *pluginTestData.Event
 
-func TestChechUri(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	if err := myConn.CheckUri(url);err!= nil{
-		log.Println("TestChechUri err:",err)
-	}else{
+var SchemaName = "bifrost_test"
+var TableName = "binlog_field_test"
+
+func init() {
+	event = pluginTestData.NewEvent()
+	event.SetSchema(SchemaName)
+	event.SetTable(TableName)
+}
+func TestChechUri(t *testing.T) {
+	myConn := NewConn()
+	myConn.SetOption(&url, nil)
+	if err := myConn.CheckUri(); err != nil {
+		log.Println("TestChechUri err:", err)
+	} else {
 		log.Println("TestChechUri success")
 	}
 }
 
-func TestSetParam(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	conn := myConn.Open(url)
-	conn.SetParam(nil)
+func TestSetParam(t *testing.T) {
+	myConn := NewConn()
+	myConn.SetOption(&url, nil)
+	myConn.SetParam(nil)
 }
 
-func TestInsert(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	conn := myConn.Open(url)
-	conn.Insert(pluginTest.GetTestInsertData())
+func TestInsert(t *testing.T) {
+	conn := NewConn()
+	conn.SetOption(&url, nil)
+	conn.Insert(event.GetTestInsertData(), false)
 }
 
-func TestUpate(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	conn := myConn.Open(url)
-	conn.Insert(pluginTest.GetTestUpdateData())
+func TestUpate(t *testing.T) {
+	conn := NewConn()
+	conn.SetOption(&url, nil)
+	conn.Update(event.GetTestUpdateData(), false)
 }
 
-
-func TestDelete(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	conn := myConn.Open(url)
-	conn.Insert(pluginTest.GetTestDeleteData())
+func TestDelete(t *testing.T) {
+	conn := NewConn()
+	conn.SetOption(&url, nil)
+	conn.Del(event.GetTestDeleteData(), false)
 }
 
-
-func TestQuery(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	conn := myConn.Open(url)
-	conn.Insert(pluginTest.GetTestQueryData())
+func TestQuery(t *testing.T) {
+	conn := NewConn()
+	conn.SetOption(&url, nil)
+	conn.Query(event.GetTestQueryData(), false)
 }
 
-func TestCommit(t *testing.T){
-	myConn := MyPlugin.MyConn{}
-	conn := myConn.Open(url)
-	conn.Commit()
+func TestCommit(t *testing.T) {
+	conn := NewConn()
+	conn.SetOption(&url, nil)
+	conn.Commit(event.GetTestCommitData(), false)
 }

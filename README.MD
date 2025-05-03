@@ -1,24 +1,50 @@
-## Bifrost ---- 面向生产环境的 MySQL 同步到Redis,ClickHouse等服务的异构中间件
+## Bifrost ---- 面向生产环境的 MySQL,MariaDB 同步到Redis,ClickHouse,Elasticsearch等服务的异构中间件
 
-[![Build Status](https://travis-ci.org/brokercap/Bifrost.svg?branch=v1.5.x)](https://travis-ci.org/brokercap/Bifrost)
+[![Gitter](https://badges.gitter.im/brokercap-Bifrost/Bifrost.svg)](https://gitter.im/brokercap-Bifrost/Bifrost?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+[![Build Status](https://app.travis-ci.com/brokercap/Bifrost.svg?branch=v1.8.x)](https://app.travis-ci.com/github/brokercap/Bifrost)
 [![License](https://img.shields.io/github/license/jc3wish/Bifrost.svg)](https://opensource.org/licenses/apache2.0)
 
+[English](https://github.com/brokercap/Bifrost/blob/v1.8.x/README.EN.MD)
 
 ##### 漫威里的彩虹桥可以将 雷神 送到 阿斯加德 和 地球
 
 
-#### 而这个 Bifrost 可以将 你 MySQL 里的数据,<font color="#F00">实时</font>的同步到 :
+#### 而这个 Bifrost 可以将数据 <font color="#F00">全量</font> , <font color="#F00">实时</font>的同步到 多个目标端
 
-* Redis
-* MongoDB
-* ClickHouse
-* MySQL
-* Memcahe
-* RabbitMQ
-* ActiveMQ
-* Kafka
-* [Http 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.5.x/plugin/http/example/http_server/http_server.go)
-* [Hprose RPC 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.5.x/hprose_server/tcp_server.go)
+
+##### 目标端支持
+
+| 目标端        | DDL | 备注                     |
+|------------|-----|------------------------|
+| Redis      | NO  |                        |
+| MongoDB    | NO  |                        |
+| MySQL      | YES |                        |
+| ClickHouse | YES |                        |
+| Memcache   | NO  |                        |
+| RabbitMQ   | YES |                        |
+| Kafka      | YES | 支持canal,debezium格式，以及kafka 消息字符串 |
+| ActiveMQ   | YES |                        |
+| [Http 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.8.x/plugin/http/example/http_server/http_server.go)| YES  |                        |
+| [Hprose RPC 自定义服务](https://github.com/brokercap/Bifrost/blob/v1.8.x/hprose_server/tcp_server.go)| YES  |                        |
+| StarRocks        | YES | use mysql protocol     |
+| Doris            | YES | use mysql protocol     |
+
+
+
+##### 源端支持
+
+| 源端      | 全量  | 增量  | 格式               | 备注                                         |
+|---------|-----|-----|------------------|--------------------------------------------|
+| MySQL   | YES | YES | Binglog & Select | 模式MySQL Slave&全版本                          |
+| MariaDB | YES | YES | Binglog & Select | 模式MySQL Slave&全版本                          |
+| Percona | YES | YES | Binglog & Select | 模式MySQL Slave&全版本                          |
+| Kafka   | NO  | YES | string           | 将kafka数据作为一个queue_data字段进行处理               |
+| Kafka   | NO  | YES | canal            | 将canal的格式自动转成biforst格式进行处理                 |
+| kafka   | NO  | YES | bifrost          | Bifrost可以作为源写入到kafka,再由Bifrost消费kafka的数据   |
+| kafka   | NO  | YES | debezium         | debezium将数据写入kafka，Bifrost消费kafka的数据自动转换处理 |
+| Mongo   | NO  | YES | oplog            |                                            |
+| kafka   | NO  | YES | customer json    | 支持自定义JSON格式数据转换Bifrost格式的功能                |
+| Mock    | NO  | YES | MySQL Binlog     | 对于OutPut插件开发的时候 ,不再需要部署MySQL等源端进行开发阶段的测试了  |
 
 ---
 
@@ -26,14 +52,13 @@
 
 ----
 
-
 #### Bifrost 特点
 
-* 支持 MySQL 所有存储类型
+* 支持 MySQL,MariaDB 所有存储类型
 
 * **界面化**动态灵活配置不同的数据表及目标库
 
-* 多数据源,**多种目标库**支持
+* 多种数据源,**多种目标库**支持
 
 * 同时支持 **增量** 及 **全量** 数据同步
 
@@ -41,13 +66,20 @@
 
 * 宕机后重启自动恢复配置,位点精确控制
 
-* 支持自定义插件开发，动态加载
-
 * 支持 Email 及 微信企业号等**监控报警**功能
 
-* 提供第三方监控平台访问接口(Http Basic验证)
+* 提供第三方监控平台访问接口(Http Basic验证)[HTTP API](https://wiki.xbifrost.com/api/http_api/)
 
-* 支持对 Null 的解析，但对 Null 的支持程度，取决于插件的支持，如果有 Null 数据，请查阅 相关插件文档
+* MySQL,ClickHouse 插件支持  DDL 同步
+
+* 简单即可实现[插件开发](https://wiki.xbifrost.com/plugin/plugin_dev/)
+
+#### 源码下载
+
+[Github](https://github.com/brokercap/Bifrost/)  , [Gitee](https://gitee.com/jc3wish/Bifrost)
+
+你的点击 star 就是对 Bifrost 最大的支持!!!
+
 
 #### Bifrost在线界面体验
 
@@ -57,21 +89,12 @@ https://www.xbifrost.com/demo/goto.html
 
 密码  :  Bifrost123
 
-![image](https://github.com/brokercap/Bifrost/blob/v1.5.x/bifrost.png)
+![image](https://github.com/brokercap/Bifrost/blob/v1.8.x/bifrost.png)
 
 
 #### *Bifrsot* Diagram
 
-![image](https://github.com/brokercap/Bifrost/blob/v1.5.x/diagram.png)
-
-
-
-
-#### Bifrost 还不足的地方
-
-* 支持批量刷数据的插件，在数据同步异常的情况下，不支持错过当前数据同步功能，例如： ClickHouse,Kafka
-
-* datetime,timestamp 解析还不支持精确到毫秒,毫秒部分将会自动被丢弃
+![image](https://github.com/brokercap/Bifrost/blob/v1.8.x/diagram.png)
 
 
 #### MySQL 版本（经过测试）
@@ -84,7 +107,7 @@ https://www.xbifrost.com/demo/goto.html
 
 * 5.7.18
 
-* 8.0.21 (用户密码验证需要采用 mysql_native_password 方式)
+* 8.0.21
 
 
 #### 安装
@@ -101,11 +124,11 @@ make install prefix=./target
 ##### 二进制文件安装
 `````sh
 
-wget https://github.com/brokercap/Bifrost/releases/download/v1.5.2-release/bifrost_v1.5.2-release_Linux-amd64-bin.tar.gz
+wget https://github.com/brokercap/Bifrost/releases/download/v2.3.12-beta/bifrost_v2.3.12-beta_Linux-amd64-bin.tar.gz
 
-tar -zxvf bifrost_v1.5.2-release_Linux-amd64-bin.tar.gz
+tar -zxvf bifrost_v2.3.12-beta_Linux-amd64-bin.tar.gz
 
-cd bifrost_v1.5.2-release_Linux-amd64-bin/bin && chmod a+x ./Bifrost*
+cd bifrost_v2.3.12-beta_Linux-amd64-bin/bin && chmod a+x ./Bifrost*
 
 `````
 
@@ -194,7 +217,7 @@ tls_key_file=./etc/server.key
 tls_crt_file=./etc/server.crt
 
 #是否开启文件队列功能 true|false
-file_queue_usable=true
+file_queue_usable=false
 
 #统计是否启文件队列的时间，单位毫秒
 file_queue_usable_count_time_diff=5000
@@ -212,7 +235,7 @@ meta_storage_path=127.0.0.1:6379
 cluster_name=bifrostTestClusterName
 
 #是否开启文件队列功能 true|false
-file_queue_usable=true
+file_queue_usable=false
 
 #统计是否启文件队列的时间，单位毫秒
 file_queue_usable_count_time_diff=5000
@@ -240,9 +263,10 @@ plugin_sync_retry_time=5
 - github.com/bradfitz/gomemcache/memcache
 - gopkg.in/mgo.v2
 - github.com/streadway/amqp
-- github.com/go-redis/redis
+- github.com/go-redis/redis/v8
 - github.com/syndtr/goleveldb/leveldb
 - github.com/ClickHouse/clickhouse-go
+- github.com/olivere/elastic/v7
 
 ### QQ群号： 70331601
 

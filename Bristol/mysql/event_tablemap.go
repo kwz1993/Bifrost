@@ -16,17 +16,17 @@ func (bits Bitfield) isSet(index uint) bool {
 }
 
 type ColumnType struct {
-	column_type  FieldType
-	name         string
-	unsigned     bool
-	max_length   uint16
-	length_size  uint8
-	precision    int
-	decimals     int
-	size         uint16
-	bytes        int
-	bits         byte
-	fsp          uint8
+	column_type FieldType
+	name        string
+	unsigned    bool
+	max_length  uint16
+	length_size uint8
+	precision   int
+	decimals    int
+	size        uint16
+	bytes       int
+	bits        byte
+	fsp         uint8
 }
 
 type TableMapEvent struct {
@@ -165,9 +165,5 @@ func (parser *eventParser) parseTableMapEvent(buf *bytes.Buffer) (event *TableMa
 		err = io.EOF
 	}
 	event.nullBitmap = Bitfield(buf.Next(int((columnCount + 7) / 8)))
-	if parser.binlog_checksum {
-		buf.Next(4)
-	}
-
 	return
 }
